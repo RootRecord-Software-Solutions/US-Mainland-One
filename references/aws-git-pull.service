@@ -1,0 +1,10 @@
+[Unit]
+Description=US-Mainland-Server git pull --ff-only (GitHub)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/US-Mainland-Server
+ExecStart=/usr/bin/git pull --ff-only
+User=ubuntu

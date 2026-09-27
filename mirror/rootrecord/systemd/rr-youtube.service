@@ -1,0 +1,19 @@
+[Unit]
+Description=RootRecord YouTube livestream (slides + radio)
+After=network-online.target rr-radio.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/rootrecord
+Environment=RR_ROOT=/home/ubuntu/rootrecord
+Environment=TZ=Pacific/Honolulu
+ExecStart=/bin/bash /home/ubuntu/rootrecord/bin/youtube_live.sh
+Restart=always
+RestartSec=15
+StandardOutput=append:/home/ubuntu/rootrecord/logs/youtube.log
+StandardError=append:/home/ubuntu/rootrecord/logs/youtube.log
+
+[Install]
+WantedBy=multi-user.target

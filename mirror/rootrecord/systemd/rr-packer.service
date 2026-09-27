@@ -1,0 +1,19 @@
+[Unit]
+Description=RootRecord datapack zip → Telegram → wipe
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/rootrecord
+Environment=RR_ROOT=/home/ubuntu/rootrecord
+Environment=TZ=Pacific/Honolulu
+ExecStart=/home/ubuntu/rootrecord/venv/bin/python /home/ubuntu/rootrecord/bin/packer.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/ubuntu/rootrecord/logs/packer.log
+StandardError=append:/home/ubuntu/rootrecord/logs/packer.log
+
+[Install]
+WantedBy=multi-user.target

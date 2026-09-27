@@ -1,0 +1,17 @@
+[Unit]
+Description=RootRecord Icecast2 server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+# Use our config; icecast runs in foreground
+ExecStart=/usr/bin/icecast2 -c /home/ubuntu/rootrecord/etc/icecast.xml
+Restart=always
+RestartSec=3
+StandardOutput=append:/home/ubuntu/rootrecord/logs/icecast.log
+StandardError=append:/home/ubuntu/rootrecord/logs/icecast.log
+
+[Install]
+WantedBy=multi-user.target

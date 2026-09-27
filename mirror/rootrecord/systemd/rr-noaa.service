@@ -1,0 +1,19 @@
+[Unit]
+Description=RootRecord NOAA forecast poller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/rootrecord
+Environment=RR_ROOT=/home/ubuntu/rootrecord
+Environment=TZ=Pacific/Honolulu
+ExecStart=/home/ubuntu/rootrecord/venv/bin/python /home/ubuntu/rootrecord/bin/noaa_poll.py
+Restart=always
+RestartSec=5
+StandardOutput=append:/home/ubuntu/rootrecord/logs/noaa.log
+StandardError=append:/home/ubuntu/rootrecord/logs/noaa.log
+
+[Install]
+WantedBy=multi-user.target
