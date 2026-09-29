@@ -1,15 +1,13 @@
-# AWS Sync (rclone)
+# US-Mainland-Server
 
-Local control directory: /home/rootrecord/.ollama/skills/aws-sync
+> **Continuity / secondary node.** Canonical ops authority is the **org**.
 
-## Quick start (after the install block has been run)
-1. First time only: ./scripts/initial-resync.sh
-2. For seamless editing: ./scripts/mount-ec2.sh
-   Then edit files under ./mnt/  (maps directly to EC2 /home/ubuntu/)
-3. Or periodic true both-ways: ./scripts/bisync.sh
-4. Unmount: ./scripts/unmount.sh
+> **Authority:** [RootRecord-Software-Solutions](https://github.com/RootRecord-Software-Solutions)  
+> **Live Pacific:** [RootRecord-Pacific-Solar-Server](https://github.com/RootRecord-Software-Solutions/RootRecord-Pacific-Solar-Server)  
+> **Docs index:** [MIGRATION-DOCS-INDEX](https://github.com/RootRecord-Software-Solutions/RootRecord-Library/blob/main/Documentation/00-architecture/MIGRATION-DOCS-INDEX-2026-09-28.md)  
+> **Library:** [RootRecord-Library](https://github.com/RootRecord-Software-Solutions/RootRecord-Library)  
+> **Database:** [RootRecord-Database](https://github.com/RootRecord-Software-Solutions/RootRecord-Database)
 
-Remote name: ec2 (SFTP → 3.139.100.162 as ubuntu, key_file set)
-Config file: config/rclone.conf
-Logs: logs/
-Local mirror of /home/ubuntu: mirror/
+Secondary infrastructure node for service continuity, synchronization, and recovery. Prefer org Pacific as primary autonomous node documentation.
+
+*Transition banner 2026-09-28 HST.*
