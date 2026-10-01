@@ -1,1 +1,0 @@
-# current-only weather fetch modules\n\nCopied from the Pacific NWS fetch layer. All writes terminate at deterministic `_current` paths; no archive writer is present.\n

@@ -1,1 +1,0 @@
-# weather/config\n\nStatic resource, host, county, cleaning, and cadence definitions.\n

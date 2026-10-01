@@ -88,6 +88,7 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 | aws-git-pull.timer | $(unit_state aws-git-pull.timer) |
 | rr-pacific-fetch.timer | $(unit_state rr-pacific-fetch.timer) |
 | rr-radio-plays-purge.timer | $(unit_state rr-radio-plays-purge.timer) |
+| rr-radio-watch.timer | $(unit_state rr-radio-watch.timer) |
 | Play log | ${plays} line(s) since the hourly wipe |
 <!-- aws-status:end -->
 EOF

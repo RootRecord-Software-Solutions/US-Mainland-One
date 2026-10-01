@@ -1,1 +1,0 @@
-# weather/core\n\nShared current-only HTTP, validation, cleaning, path, and in-memory change state. No archive writer.\n

@@ -18,3 +18,5 @@ The status API serves the library:
 The catalog lists a rollup only inside its Hawaii window: morning 09:00–12:00, midday 12:00–21:00, late 21:00–09:00. The file stays on disk. After noon the morning report is not offered to the player.
 
 A play is a GET that starts at byte 0 and sends more than 1024 bytes. Those lines go to `/home/ubuntu/rootrecord-radio/plays.log` (`time`, kind, filename, bytes). `rr-radio-plays-purge.timer` empties that file every hour. It does not keep a copy.
+
+`rr-radio-watch.timer` runs `radio-watch.sh` every minute. It keeps one status API process and one Caddy process, then requests the catalog so that path stays warm. A single healthy listener is not restarted. The live copy of the script is `/home/ubuntu/rootrecord-radio/radio-watch.sh`. The last check is `watch.json` beside it.

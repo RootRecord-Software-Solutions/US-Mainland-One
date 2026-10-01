@@ -20,6 +20,16 @@ rc=$?
 
 after="$(fingerprint)"
 
+watch_src="$API_DIR/radio-watch.sh"
+watch_dst="/home/ubuntu/rootrecord-radio/radio-watch.sh"
+if [[ -f "$watch_src" ]]; then
+  mkdir -p "$(dirname "$watch_dst")"
+  if ! cmp -s "$watch_src" "$watch_dst"; then
+    cp "$watch_src" "$watch_dst"
+    chmod 755 "$watch_dst"
+  fi
+fi
+
 if [[ "$rc" -eq 0 && -n "$after" && "$before" != "$after" ]]; then
   sudo -n systemctl restart rr-status-api.service
 fi
