@@ -12,12 +12,23 @@ Secondary infrastructure node for service continuity, synchronization, and recov
 
 *Transition banner 2026-09-28 HST.*
 
+<!-- aws-status:start -->
+## Live status
+
+The AWS host fills this block in and pushes it to GitHub. A desk publish keeps the block already on GitHub.
+
+| | |
+| --- | --- |
+| Checked | not yet written by AWS |
+| Checkout | waiting for the first host update |
+<!-- aws-status:end -->
+
 ---
 
 ## Desk checkout layout (G3, 2026-09-29 HST)
 
 Desk path: `/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-Server/` (sibling of Pacific).
-AWS path: `/home/ubuntu/US-Mainland-Server/` — the AWS `rr-rootserver-poller` `github_pull` job fast-forwards it **every minute**, so anything pushed here reaches the host's checkout within ~60 s (runtime copies under `/home/ubuntu/{automations,network-globe}` are deployed separately).
+AWS path: `/home/ubuntu/US-Mainland-Server/`. `aws-git-pull.timer` fast-forwards that checkout every minute. The host rewrites the live status block above and pushes it back. Runtime copies under `/home/ubuntu/{automations,network-globe}` are deployed separately.
 
 | Folder (current, lowercase — kept because AWS paths and docs reference it) | Proposed G3 Title-case name | What it holds | Runs on |
 | --- | --- | --- | --- |
