@@ -1,6 +1,6 @@
 #!/bin/bash
-# Keep one status API and one Caddy. Warm the radio catalog.
-# A healthy listener is left running. A missing process is started.
+# Keep one station, one status API, and one Caddy.
+# A healthy process is left running. A missing process is started.
 # More than one match is collapsed to the systemd unit.
 set -u
 
@@ -24,13 +24,25 @@ listening() {
 
 api_count="$(count_cmd '/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js')"
 caddy_count="$(count_cmd '/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile')"
+stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
 api_up=0
 caddy_up=0
+stream_up=0
 listening '127.0.0.1:8091' && api_up=1
 listening ':443 ' && caddy_up=1
+listening '127.0.0.1:8092' && stream_up=1
 
 api_action="warm"
 caddy_action="warm"
+stream_action="warm"
+
+if [[ "$stream_count" -gt 1 ]]; then
+  sudo -n systemctl restart rr-radio-stream.service
+  stream_action="collapsed"
+elif [[ "$stream_up" -eq 0 || "$stream_count" -eq 0 ]]; then
+  sudo -n systemctl start rr-radio-stream.service
+  stream_action="started"
+fi
 
 if [[ "$api_count" -gt 1 ]]; then
   sudo -n systemctl restart rr-status-api.service
@@ -53,11 +65,12 @@ catalog="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.
 
 api_count="$(count_cmd '/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js')"
 caddy_count="$(count_cmd '/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile')"
+stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
 
-python3 - "$STATE" "$api_action" "$api_count" "$caddy_action" "$caddy_count" "$catalog" << 'PY'
+python3 - "$STATE" "$api_action" "$api_count" "$caddy_action" "$caddy_count" "$catalog" "$stream_action" "$stream_count" << 'PY'
 import json, sys
 from datetime import datetime, timezone
-path, api_action, api_count, caddy_action, caddy_count, catalog = sys.argv[1:]
+path, api_action, api_count, caddy_action, caddy_count, catalog, stream_action, stream_count = sys.argv[1:]
 payload = {
     "at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     "status_api": api_action,
@@ -65,6 +78,8 @@ payload = {
     "caddy": caddy_action,
     "caddy_count": int(caddy_count or 0),
     "catalog": int(catalog or 0),
+    "station": stream_action,
+    "station_count": int(stream_count or 0),
 }
 with open(path, "w", encoding="utf-8") as handle:
     json.dump(payload, handle)

@@ -30,6 +30,15 @@ if [[ -f "$watch_src" ]]; then
   fi
 fi
 
+stream_src="$API_DIR/stream.js"
+stream_dst="/home/ubuntu/rootrecord-radio/stream.js"
+if [[ -f "$stream_src" ]]; then
+  if ! cmp -s "$stream_src" "$stream_dst"; then
+    cp "$stream_src" "$stream_dst"
+    sudo -n systemctl restart rr-radio-stream.service
+  fi
+fi
+
 if [[ "$rc" -eq 0 && -n "$after" && "$before" != "$after" ]]; then
   sudo -n systemctl restart rr-status-api.service
 fi

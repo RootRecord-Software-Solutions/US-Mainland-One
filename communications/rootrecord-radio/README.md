@@ -19,4 +19,4 @@ The catalog lists a rollup only inside its Hawaii window: morning 09:00–12:00,
 
 A play is a GET that starts at byte 0 and sends more than 1024 bytes. Those lines go to `/home/ubuntu/rootrecord-radio/plays.log` (`time`, kind, filename, bytes). `rr-radio-plays-purge.timer` empties that file every hour. It does not keep a copy.
 
-`rr-radio-watch.timer` runs `radio-watch.sh` every minute. It keeps one status API process and one Caddy process, then requests the catalog so that path stays warm. A single healthy listener is not restarted. The live copy of the script is `/home/ubuntu/rootrecord-radio/radio-watch.sh`. The last check is `watch.json` beside it.
+`rr-radio-stream.service` is the station. One process mixes the music, the reports, and the Hawaii chimes into one MP3. Listeners join `GET /radio/live.mp3`. `GET /radio/now.json` is the current music and report. A browser does not choose or skip a track. `rr-radio-watch.timer` keeps that service, the status API, and Caddy as one process each. A healthy process is not restarted. The live mixer is `/home/ubuntu/rootrecord-radio/stream.js`. The last check is `watch.json` beside it.
