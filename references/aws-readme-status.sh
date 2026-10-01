@@ -29,7 +29,8 @@ unit_state() {
 checked="$(TZ=Pacific/Honolulu date '+%Y-%m-%d %H:%M HST')"
 sha="$(git rev-parse --short HEAD)"
 subject="$(git log -1 --format='%s' | tr '|' '/')"
-counts="$(git rev-list --left-right --count origin/main...HEAD 2>/dev/null || echo '? ?')"
+counts="$(git rev-list --left-right --count origin/main...HEAD 2>/dev/null | tr '\t' ' ' || true)"
+[[ -n "$counts" ]] || counts="? ?"
 behind="${counts%% *}"
 ahead="${counts##* }"
 if [[ "$behind" == "0" && "$ahead" == "0" ]]; then
