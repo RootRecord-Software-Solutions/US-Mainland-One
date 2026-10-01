@@ -8,6 +8,7 @@
 
 const http = require('http');
 const fs = require('fs');
+const radio = require('./radio');
 
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = Number(process.env.PORT || 8091);
@@ -110,6 +111,7 @@ const server = http.createServer((req, res) => {
       return send(res, 200, state);
     });
   }
+  if (radio.handle(req, res, url)) return;
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Not found\n');
 });

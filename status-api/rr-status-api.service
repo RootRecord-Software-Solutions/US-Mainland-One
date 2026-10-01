@@ -12,6 +12,7 @@ Environment=PORT=8091
 Environment=STATUS_FILE=/home/ubuntu/rebroadcast/status-current.json
 Environment=STATE_FILE=/home/ubuntu/network-globe/network-globe/data/state.json
 Environment=STATE_URL=http://127.0.0.1:8090/api/state
+Environment=RADIO_DIR=/home/ubuntu/US-Mainland-Server/communications/rootrecord-radio/audio
 ExecStart=/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js
 Restart=always
 RestartSec=3
