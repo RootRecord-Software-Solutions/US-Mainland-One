@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 13:00 HST |
-| Commit | `ab33ddf` Merge remote-tracking branch 'origin/main' |
+| Checked | 2026-10-01 13:15 HST |
+| Commit | `9c712f4` auto: 2026-10-01T23:10Z desk sync (6 file(s)) |
 | Checkout | even with GitHub; local edits: communications/rootrecord-radio/audio/reports/nws_weather_current.ogg,network-globe/package-lock.json |
-| Last pull | 2026-10-01T23:00:02+00:00 — fatal: Cannot fast-forward to multiple branches. |
+| Last pull | 2026-10-01T23:14:09+00:00 — Already up to date. |
 | Disk | 2.3G free of 6.7G (66% used) |
-| Uptime | up 5 days, 8 hours, 17 minutes |
+| Uptime | up 5 days, 8 hours, 32 minutes |
 | rr-status-api | active (enabled) |
 | network-globe-web | active (enabled) |
 | network-globe-feed | active (enabled) |
@@ -34,7 +34,8 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 | rr-pacific-fetch.timer | active (enabled) |
 | rr-radio-plays-purge.timer | active (enabled) |
 | rr-radio-watch.timer | active (enabled) |
-| Play log | 0 line(s) since the hourly wipe |
+| rr-radio-stream | active (enabled) |
+| Play log | 20 line(s) since the hourly wipe |
 <!-- aws-status:end -->
 
 ---
