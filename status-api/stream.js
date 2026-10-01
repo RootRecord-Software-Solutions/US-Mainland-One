@@ -153,7 +153,7 @@ function Decoder(file) {
     if (self.buf.length > FRAME * 40 && !self.proc.stdout.isPaused()) self.proc.stdout.pause();
   });
   this.proc.stdout.on('end', () => { self.closed = true; });
-  this.proc.on('exit', () => { self.closed = true; });
+  this.proc.stdout.on('error', () => { self.closed = true; });
 }
 
 Decoder.prototype.stop = function () {
