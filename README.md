@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 12:30 HST |
-| Commit | `cce92d0` Fix the README checkout line when Git prints a tab between counts. |
-| Checkout | diverged (behind 0	0, ahead 0	0); local edits: communications/rootrecord-radio/audio/reports/nws_weather_current.ogg,network-globe/package-lock.json |
-| Last pull | 2026-10-01T22:30:19+00:00 — Already up to date. |
+| Checked | 2026-10-01 12:31 HST |
+| Commit | `ab0e85a` status: AWS live README 2026-10-01T22:30Z |
+| Checkout | even with GitHub; local edits: communications/rootrecord-radio/audio/reports/nws_weather_current.ogg,network-globe/package-lock.json |
+| Last pull | 2026-10-01T22:31:23+00:00 — Already up to date. |
 | Disk | 2.6G free of 6.7G (62% used) |
-| Uptime | up 5 days, 7 hours, 47 minutes |
+| Uptime | up 5 days, 7 hours, 48 minutes |
 | rr-status-api | active (enabled) |
 | network-globe-web | active (enabled) |
 | network-globe-feed | active (enabled) |
