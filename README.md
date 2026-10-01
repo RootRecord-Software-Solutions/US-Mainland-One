@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 12:31 HST |
-| Commit | `ab0e85a` status: AWS live README 2026-10-01T22:30Z |
+| Checked | 2026-10-01 12:45 HST |
+| Commit | `2827c3a` status: AWS live README 2026-10-01T22:31Z |
 | Checkout | even with GitHub; local edits: communications/rootrecord-radio/audio/reports/nws_weather_current.ogg,network-globe/package-lock.json |
-| Last pull | 2026-10-01T22:31:23+00:00 — Already up to date. |
-| Disk | 2.6G free of 6.7G (62% used) |
-| Uptime | up 5 days, 7 hours, 48 minutes |
+| Last pull | 2026-10-01T22:44:39+00:00 — Already up to date. |
+| Disk | 2.6G free of 6.7G (61% used) |
+| Uptime | up 5 days, 8 hours, 2 minutes |
 | rr-status-api | active (enabled) |
 | network-globe-web | active (enabled) |
 | network-globe-feed | active (enabled) |
@@ -33,7 +33,7 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 | aws-git-pull.timer | active (enabled) |
 | rr-pacific-fetch.timer | active (enabled) |
 | rr-radio-plays-purge.timer | active (enabled) |
-| Play log | 12 line(s) since the hourly wipe |
+| Play log | 28 line(s) since the hourly wipe |
 <!-- aws-status:end -->
 
 ---
