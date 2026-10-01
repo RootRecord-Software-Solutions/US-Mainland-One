@@ -14,6 +14,7 @@ Environment=STATE_FILE=/home/ubuntu/network-globe/network-globe/data/state.json
 Environment=STATE_URL=http://127.0.0.1:8090/api/state
 Environment=RADIO_DIR=/home/ubuntu/rootrecord-radio/audio
 Environment=RADIO_REPORTS_DIR=/home/ubuntu/rootrecord-radio/audio/reports
+Environment=RADIO_PLAY_LOG=/home/ubuntu/rootrecord-radio/plays.log
 ExecStart=/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js
 Restart=always
 RestartSec=3

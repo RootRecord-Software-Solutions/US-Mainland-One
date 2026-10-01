@@ -11,7 +11,10 @@ The status API serves the library:
 - `GET /radio/catalog.json`
 - `GET /radio/music/<file>.mp3`
 - `GET /radio/reports/<report>_current.ogg`
+- `GET /radio/chimes/hour-HH-MM.wav` — Hawaii :00 and :30. The page pauses a report, plays this file, then continues the report.
 
 `RADIO_DIR` is the live library (`/home/ubuntu/rootrecord-radio/audio`). `RADIO_REPORTS_DIR` is its `reports` folder. Music stays a symlink back to `audio/music/` in this checkout.
 
 The catalog lists a rollup only inside its Hawaii window: morning 09:00–12:00, midday 12:00–21:00, late 21:00–09:00. The file stays on disk. After noon the morning report is not offered to the player.
+
+A play is a GET that starts at byte 0 and sends more than 1024 bytes. Those lines go to `/home/ubuntu/rootrecord-radio/plays.log` (`time`, kind, filename, bytes). `rr-radio-plays-purge.timer` empties that file every hour. It does not keep a copy.

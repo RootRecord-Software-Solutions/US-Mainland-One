@@ -8,8 +8,10 @@ const path = require('path');
 
 const AUDIO = process.env.RADIO_DIR || path.join(__dirname, '..', 'communications', 'rootrecord-radio', 'audio');
 const REPORTS = process.env.RADIO_REPORTS_DIR || path.join(AUDIO, 'reports');
+const PLAY_LOG = process.env.RADIO_PLAY_LOG || '/home/ubuntu/rootrecord-radio/plays.log';
 const MUSIC_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,180}\.mp3$/;
 const REPORT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*_current\.ogg$/;
+const CHIME_NAME = /^hour-(?:[01]\d|2[0-3])-(?:00|30)\.wav$/;
 // Hawaii minutes [start, end). End is exclusive. A wrap (start > end) crosses midnight.
 const SLOT_WINDOW = {
   morning_report: [9 * 60, 12 * 60],
@@ -121,7 +123,14 @@ function safeFile(dir, name, pattern) {
   return full;
 }
 
-function serveFile(req, res, filePath, type, cache) {
+function recordPlay(kind, name, bytes) {
+  const line = new Date().toISOString() + '\t' + kind + '\t' + name + '\t' + String(bytes) + '\n';
+  fs.mkdir(path.dirname(PLAY_LOG), { recursive: true }, () => {
+    fs.appendFile(PLAY_LOG, line, () => {});
+  });
+}
+
+function serveFile(req, res, filePath, type, cache, play) {
   fs.stat(filePath, (err, st) => {
     if (err || !st.isFile()) {
       res.writeHead(404, cors({ 'Content-Type': 'text/plain; charset=utf-8' }));
@@ -141,6 +150,7 @@ function serveFile(req, res, filePath, type, cache) {
         res.end();
         return;
       }
+      if (play) recordPlay(play.kind, play.name, size);
       fs.createReadStream(filePath).on('error', () => res.destroy()).pipe(res);
       return;
     }
@@ -169,14 +179,17 @@ function serveFile(req, res, filePath, type, cache) {
       res.end();
       return;
     }
+    const span = (end - start) + 1;
     res.writeHead(206, Object.assign({
       'Content-Range': 'bytes ' + start + '-' + end + '/' + size,
-      'Content-Length': (end - start) + 1
+      'Content-Length': span
     }, base));
     if (req.method === 'HEAD') {
       res.end();
       return;
     }
+    // Browsers probe with a 1–2 byte range, then start the file at byte 0.
+    if (play && start === 0 && span > 1024) recordPlay(play.kind, play.name, span);
     fs.createReadStream(filePath, { start, end }).on('error', () => res.destroy()).pipe(res);
   });
 }
@@ -194,14 +207,17 @@ function handle(req, res, url) {
 }
 
 function route(req, res, url) {
-  if (url.pathname !== '/radio/catalog.json' && !url.pathname.startsWith('/radio/music/') && !url.pathname.startsWith('/radio/reports/')) {
+  const isMusic = url.pathname.startsWith('/radio/music/');
+  const isReports = url.pathname.startsWith('/radio/reports/');
+  const isChimes = url.pathname.startsWith('/radio/chimes/');
+  if (url.pathname !== '/radio/catalog.json' && !isMusic && !isReports && !isChimes) {
     return false;
   }
   if (url.pathname === '/radio/catalog.json') {
     sendJson(res, 200, catalog());
     return true;
   }
-  const kind = url.pathname.startsWith('/radio/music/') ? 'music' : 'reports';
+  const kind = isMusic ? 'music' : (isChimes ? 'chimes' : 'reports');
   const raw = url.pathname.slice(('/radio/' + kind + '/').length);
   let name = raw;
   try {
@@ -209,16 +225,17 @@ function route(req, res, url) {
   } catch {
     name = raw;
   }
-  const test = kind === 'music' ? MUSIC_NAME : REPORT_NAME;
-  const filePath = safeFile(kind === 'music' ? path.join(AUDIO, 'music') : REPORTS, name, test);
+  const test = kind === 'music' ? MUSIC_NAME : (kind === 'chimes' ? CHIME_NAME : REPORT_NAME);
+  const dir = kind === 'music' ? path.join(AUDIO, 'music') : (kind === 'chimes' ? path.join(AUDIO, 'chimes') : REPORTS);
+  const filePath = safeFile(dir, name, test);
   if (!filePath) {
     res.writeHead(404, cors({ 'Content-Type': 'text/plain; charset=utf-8' }));
     res.end('Not found\n');
     return true;
   }
-  const type = kind === 'music' ? 'audio/mpeg' : 'audio/ogg';
-  const cache = kind === 'music' ? 'public, max-age=86400' : 'no-store';
-  serveFile(req, res, filePath, type, cache);
+  const type = kind === 'music' ? 'audio/mpeg' : (kind === 'chimes' ? 'audio/wav' : 'audio/ogg');
+  const cache = kind === 'reports' ? 'no-store' : 'public, max-age=86400';
+  serveFile(req, res, filePath, type, cache, { kind, name });
   return true;
 }
 
