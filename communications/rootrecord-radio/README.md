@@ -13,3 +13,5 @@ The status API serves the library:
 - `GET /radio/reports/<report>_current.ogg`
 
 `RADIO_DIR` is the live library (`/home/ubuntu/rootrecord-radio/audio`). `RADIO_REPORTS_DIR` is its `reports` folder. Music stays a symlink back to `audio/music/` in this checkout.
+
+The catalog lists a rollup only inside its Hawaii window: morning 09:00–12:00, midday 12:00–21:00, late 21:00–09:00. The file stays on disk. After noon the morning report is not offered to the player.

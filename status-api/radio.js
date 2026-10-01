@@ -10,6 +10,37 @@ const AUDIO = process.env.RADIO_DIR || path.join(__dirname, '..', 'communication
 const REPORTS = process.env.RADIO_REPORTS_DIR || path.join(AUDIO, 'reports');
 const MUSIC_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,180}\.mp3$/;
 const REPORT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*_current\.ogg$/;
+// Hawaii minutes [start, end). End is exclusive. A wrap (start > end) crosses midnight.
+const SLOT_WINDOW = {
+  morning_report: [9 * 60, 12 * 60],
+  midday_report: [12 * 60, 21 * 60],
+  late_report: [21 * 60, 9 * 60]
+};
+
+function hawaiiMinutes(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Pacific/Honolulu',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(date || new Date());
+  let hour = 0;
+  let minute = 0;
+  for (const part of parts) {
+    if (part.type === 'hour') hour = Number(part.value) % 24;
+    if (part.type === 'minute') minute = Number(part.value);
+  }
+  return hour * 60 + minute;
+}
+
+function onAir(id, minutes) {
+  const span = SLOT_WINDOW[id];
+  if (!span) return true;
+  const start = span[0];
+  const end = span[1];
+  if (start <= end) return minutes >= start && minutes < end;
+  return minutes >= start || minutes < end;
+}
 
 function cors(extra) {
   return Object.assign({
@@ -62,12 +93,13 @@ function catalog() {
     const description = typeof meta.description === 'string' ? meta.description.trim() : '';
     return { name: row.name, bytes: row.bytes, mtime: row.mtime, title, description };
   });
+  const minutes = hawaiiMinutes(new Date());
   const reports = list(REPORTS, (name) => REPORT_NAME.test(name)).map((row) => ({
     id: row.name.slice(0, -'_current.ogg'.length),
     file: row.name,
     bytes: row.bytes,
     mtime: row.mtime
-  }));
+  })).filter((row) => onAir(row.id, minutes));
   return { ok: true, music, reports };
 }
 
@@ -190,4 +222,4 @@ function route(req, res, url) {
   return true;
 }
 
-module.exports = { handle, catalog, AUDIO, REPORTS };
+module.exports = { handle, catalog, AUDIO, REPORTS, onAir, hawaiiMinutes };
