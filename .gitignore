@@ -63,6 +63,7 @@ build/
 # ---- Radio library (pushed from Hawaii over SSH; not git) ----
 communications/rootrecord-radio/audio/music/*
 communications/rootrecord-radio/audio/reports/*
+communications/rootrecord-radio/audio/retired/
 !communications/rootrecord-radio/audio/music/.gitkeep
 !communications/rootrecord-radio/audio/reports/.gitkeep
 

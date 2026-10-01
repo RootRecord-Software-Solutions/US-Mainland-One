@@ -1,12 +1,13 @@
 'use strict';
 
 // Static library for the public radio stream.
-// Hawaii pushes files here. This process only reads the directory.
+// Hawaii replaces each <report>_current.ogg. This process only reads the directory.
 
 const fs = require('fs');
 const path = require('path');
 
 const AUDIO = process.env.RADIO_DIR || path.join(__dirname, '..', 'communications', 'rootrecord-radio', 'audio');
+const REPORTS = process.env.RADIO_REPORTS_DIR || path.join(AUDIO, 'reports');
 const MUSIC_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,180}\.mp3$/;
 const REPORT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*_current\.ogg$/;
 
@@ -42,9 +43,26 @@ function list(dir, test) {
   return out;
 }
 
+function loadLibrary() {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(AUDIO, 'library.json'), 'utf8'));
+    return data && typeof data === 'object' ? data : {};
+  } catch {
+    return {};
+  }
+}
+
 function catalog() {
-  const music = list(path.join(AUDIO, 'music'), (name) => MUSIC_NAME.test(name));
-  const reports = list(path.join(AUDIO, 'reports'), (name) => REPORT_NAME.test(name)).map((row) => ({
+  const lib = loadLibrary();
+  const music = list(path.join(AUDIO, 'music'), (name) => MUSIC_NAME.test(name)).map((row) => {
+    const meta = lib[row.name] || {};
+    const title = typeof meta.title === 'string' && meta.title.trim()
+      ? meta.title.trim()
+      : row.name.replace(/\.mp3$/i, '');
+    const description = typeof meta.description === 'string' ? meta.description.trim() : '';
+    return { name: row.name, bytes: row.bytes, mtime: row.mtime, title, description };
+  });
+  const reports = list(REPORTS, (name) => REPORT_NAME.test(name)).map((row) => ({
     id: row.name.slice(0, -'_current.ogg'.length),
     file: row.name,
     bytes: row.bytes,
@@ -160,16 +178,16 @@ function route(req, res, url) {
     name = raw;
   }
   const test = kind === 'music' ? MUSIC_NAME : REPORT_NAME;
-  const filePath = safeFile(path.join(AUDIO, kind), name, test);
+  const filePath = safeFile(kind === 'music' ? path.join(AUDIO, 'music') : REPORTS, name, test);
   if (!filePath) {
     res.writeHead(404, cors({ 'Content-Type': 'text/plain; charset=utf-8' }));
     res.end('Not found\n');
     return true;
   }
   const type = kind === 'music' ? 'audio/mpeg' : 'audio/ogg';
-  const cache = kind === 'music' ? 'public, max-age=86400' : 'no-cache';
+  const cache = kind === 'music' ? 'public, max-age=86400' : 'no-store';
   serveFile(req, res, filePath, type, cache);
   return true;
 }
 
-module.exports = { handle, catalog, AUDIO };
+module.exports = { handle, catalog, AUDIO, REPORTS };
