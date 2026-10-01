@@ -208,53 +208,6 @@ function startEncoder() {
   });
 }
 
-function readExact(stream, n) {
-  return new Promise((resolve) => {
-    if (!stream || stream.readableEnded || stream.destroyed) {
-      resolve(null);
-      return;
-    }
-    const chunks = [];
-    let got = 0;
-    let settled = false;
-    const finish = (ended) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      stream.removeListener('readable', onReadable);
-      stream.removeListener('end', onEnd);
-      stream.removeListener('close', onEnd);
-      if (!got) {
-        resolve(null);
-        return;
-      }
-      const buf = Buffer.concat(chunks);
-      if (buf.length < n) {
-        const padded = Buffer.alloc(n);
-        buf.copy(padded);
-        resolve({ pcm: padded, ended: true });
-        return;
-      }
-      resolve({ pcm: buf.subarray(0, n), ended: ended });
-    };
-    const onEnd = () => finish(true);
-    const onReadable = () => {
-      let piece;
-      while (got < n && (piece = stream.read(n - got))) {
-        chunks.push(piece);
-        got += piece.length;
-      }
-      if (got >= n) finish(false);
-    };
-    const timer = setTimeout(() => finish(true), 8000);
-    onReadable();
-    if (settled) return;
-    stream.on('readable', onReadable);
-    stream.on('end', onEnd);
-    stream.on('close', onEnd);
-  });
-}
-
 function mix(music, voice) {
   const out = Buffer.alloc(FRAME);
   const gain = voice ? DUCK : 1;
@@ -296,10 +249,18 @@ function reportPath(name) {
 function beginReport(item) {
   const file = reportPath(item.file);
   if (!file || !fs.existsSync(file)) return;
-  closeProc(reportProc);
-  playing = { id: item.id, file: item.file, mtime: item.mtime };
+  const held = path.join('/home/ubuntu/rootrecord-radio/play', item.id + '.ogg');
+  try {
+    fs.mkdirSync(path.dirname(held), { recursive: true });
+    fs.copyFileSync(file, held);
+  } catch (err) {
+    console.log('copy ' + item.id);
+    return;
+  }
+  if (reportProc) reportProc.stop();
+  playing = { id: item.id, file: item.file, mtime: item.mtime, at: Date.now() };
   now.report = titleOf(item.id);
-  reportProc = openDecode(file);
+  reportProc = new Decoder(held);
   console.log('report ' + item.id);
 }
 
@@ -307,10 +268,12 @@ function finishReport() {
   if (!playing) return;
   if (chimeOn && reportHeld) return;
   const done = playing;
+  const elapsed = ((Date.now() - (done.at || Date.now())) / 1000).toFixed(1);
   playing = null;
   now.report = '';
-  closeProc(reportProc);
+  if (reportProc) reportProc.stop();
   reportProc = null;
+  console.log('report end ' + done.id + ' ' + elapsed + 's');
   if (replay && replay.id === done.id && replay.mtime > done.mtime) {
     const again = replay;
     replay = null;
@@ -410,7 +373,7 @@ function scan() {
 }
 
 function ensureMusic() {
-  if (musicProc && musicProc.exitCode == null && !musicProc.killed) return;
+  if (musicProc) return;
   if (!tracks.length) return;
   if (orderAt >= order.length) {
     order = shuffle(tracks);
@@ -427,8 +390,8 @@ function ensureMusic() {
   lastTrack = row.name;
   now.music = row.title || row.name.replace(/\.mp3$/i, '');
   now.description = row.description || '';
-  closeProc(musicProc);
-  musicProc = openDecode(file);
+  if (musicProc) musicProc.stop();
+  musicProc = new Decoder(file);
   console.log('music ' + now.music);
 }
 
@@ -444,7 +407,7 @@ function maybeChime() {
   chimeOn = true;
   reportHeld = !!(playing && reportProc);
   now.chime = true;
-  chimeProc = openDecode(file);
+  chimeProc = new Decoder(file);
   console.log('chime ' + slot);
 }
 
@@ -452,34 +415,33 @@ async function step() {
   maybeChime();
   if (!playing && !chimeOn) pump();
   ensureMusic();
-  const musicFrame = musicProc ? await readExact(musicProc.stdout, FRAME) : null;
-  const musicPcm = musicFrame && musicFrame.pcm ? musicFrame.pcm : Buffer.alloc(FRAME);
-  if (!musicFrame || musicFrame.ended) {
-    closeProc(musicProc);
-    musicProc = null;
+  let musicPcm = Buffer.alloc(FRAME);
+  if (musicProc) {
+    const frame = musicProc.take();
+    if (frame && frame.pcm) musicPcm = frame.pcm;
+    if (frame && frame.ended) {
+      musicProc.stop();
+      musicProc = null;
+    }
   }
   let voice = null;
   if (chimeOn && chimeProc) {
-    const chimeFrame = await readExact(chimeProc.stdout, FRAME);
-    if (!chimeFrame || chimeFrame.ended) {
-      if (chimeFrame && chimeFrame.pcm) voice = chimeFrame.pcm;
-      closeProc(chimeProc);
+    const frame = chimeProc.take();
+    if (frame && frame.pcm) voice = frame.pcm;
+    if (frame && frame.ended) {
+      chimeProc.stop();
       chimeProc = null;
       chimeOn = false;
       now.chime = false;
       reportHeld = false;
-    } else {
-      voice = chimeFrame.pcm;
     }
   } else if (playing && reportProc) {
-    const reportFrame = await readExact(reportProc.stdout, FRAME);
-    if (!reportFrame || reportFrame.ended) {
-      if (reportFrame && reportFrame.pcm) voice = reportFrame.pcm;
-      closeProc(reportProc);
+    const frame = reportProc.take();
+    if (frame && frame.pcm) voice = frame.pcm;
+    if (frame && frame.ended) {
+      reportProc.stop();
       reportProc = null;
       finishReport();
-    } else {
-      voice = reportFrame.pcm;
     }
   }
   await writePcm(mix(musicPcm, voice));
@@ -502,9 +464,9 @@ async function loop() {
 function shutdown() {
   stopped = true;
   clearTimeout(gapTimer);
-  closeProc(musicProc);
-  closeProc(reportProc);
-  closeProc(chimeProc);
+  if (musicProc) musicProc.stop();
+  if (reportProc) reportProc.stop();
+  if (chimeProc) chimeProc.stop();
   if (encoder) {
     try { encoder.stdin.end(); } catch (err) {}
     try { encoder.kill('SIGKILL'); } catch (err) {}
