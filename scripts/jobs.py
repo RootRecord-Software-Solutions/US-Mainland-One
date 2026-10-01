@@ -4,8 +4,8 @@
 # This desk is the US-Mainland-Server git work tree.
 # OmniBook pushes via Pacific poller github_sync_all (every 300s).
 # AWS pulls only (every 60s) — never rclone bisync.
-# Intake data → /home/rootrecord/Database/intake/
-# Baks → /home/rootrecord/Database/GITHUB/  (never under skills/)
+# Intake data → 2 - RootRecord-Database/Intake/
+# Baks → 2 - RootRecord-Database/Github/  (never under skills/, never /home/rootrecord/Database)
 # Pacific .gitignore excludes us-mainland-server/ from Solar-Pacific repo.
 # ==============================================================================
 #

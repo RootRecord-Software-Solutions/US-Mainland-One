@@ -72,3 +72,7 @@ mirror/.aws/cli/cache/
 mirror/network-globe/network-globe/data/*.json
 mirror/network-globe/network-globe/data/*.ndjson
 mirror/network-globe/network-globe/*.log
+
+# ---- Python bytecode (desk import 2026-09-29; scripts/__pycache__/jobs.cpython-314.pyc is already tracked — untrack only with sign-off) ----
+__pycache__/
+*.py[cod]

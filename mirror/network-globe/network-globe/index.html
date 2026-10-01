@@ -40,9 +40,10 @@ const globe=Globe()(document.getElementById('globe'))
 globe.controls().autoRotate=true;globe.controls().autoRotateSpeed=.35;globe.controls().enableZoom=true;
 const $=id=>document.getElementById(id); const fmt=n=>Number(n||0).toLocaleString();
 function bytes(n){n=Number(n||0);if(n<1024)return `${Math.round(n)} B/s`;if(n<1048576)return `${(n/1024).toFixed(1)} KB/s`;if(n<1073741824)return `${(n/1048576).toFixed(1)} MB/s`;return `${(n/1073741824).toFixed(1)} GB/s`}
-function update(d){const s=d.stats||{};$('flows').textContent=fmt(s.activeFlows);$('endpoints').textContent=fmt(s.endpoints);$('pps').textContent=Number(s.packetRate||0).toFixed(1);$('bps').textContent=bytes(s.bytesPerSec);$('origin').textContent=`Origin: ${d.origin?.label||'unknown'} · collector: ${s.collector||'ss'}`;const a=d.aws||{};$('aws').innerHTML=a.ok?`<span class="aws">AWS: ${a.region||'unknown'} · ${a.resourceNodes||0} resource groups · acct ${a.account||'?'}</span>`:`AWS: ${a.reason||'no AWS telemetry'}`;}
+function update(d){const s=d.stats||{};$('flows').textContent=fmt(s.activeFlows);$('endpoints').textContent=fmt(s.endpoints);$('pps').textContent=Number(s.packetRate||0).toFixed(1);$('bps').textContent=bytes(s.bytesPerSec);const local=s.localActiveFlows, hawaii=s.hawaiiActiveFlows; $('origin').textContent=(local==null&&hawaii==null)?`Origin: ${d.origin?.label||'unknown'} · collector: ${s.collector||'ss'}`:`Hawaii ${fmt(hawaii)} flows · Mainland ${fmt(local)} flows · ${s.collector||''}`; const a=d.aws||{}; $('aws').innerHTML=a.ok?`<span class="aws">Mainland measuring · ${a.region||'us-east-2'}</span>`:`AWS: ${a.reason||'no AWS telemetry'}`;}
 let busy=false;async function poll(){if(busy)return;busy=true;try{const r=await fetch('/api/state',{cache:'no-store'});const d=await r.json();globe.arcsData(d.arcs||[]);globe.pointsData(d.points||[]);update(d);$('status').textContent='LIVE';$('dot').style.background='#22c55e';$('dot').style.boxShadow='0 0 10px #22c55e'}catch(e){$('status').textContent='OFFLINE';$('dot').style.background='#ef4444';$('dot').style.boxShadow='0 0 10px #ef4444'}finally{busy=false}}
 poll();setInterval(poll,1000);
 </script>
+  <script src="/overlay/overlay.js" defer></script>
 </body>
 </html>

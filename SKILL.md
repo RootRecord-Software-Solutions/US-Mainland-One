@@ -14,8 +14,8 @@ This folder **is** the `US-Mainland-Server` git work tree.
 | GitHub | `rootrecordsoftwaresolutions/US-Mainland-Server` |
 | Push | automations poller → `github_sync_all` (300s) |
 | AWS pull | every 60s — see `references/aws-git-pull.service` |
-| Intake data | `/home/rootrecord/Database/intake/` |
-| Baks | `/home/rootrecord/Database/GITHUB/` via `../github/scripts/bak-new.sh` |
+| Intake data | `2 - RootRecord-Database/Intake/` |
+| Baks | `2 - RootRecord-Database/Github/` via Pacific `Github/scripts/bak-new.sh` |
 
 **Not** on Solar-Pacific-RootRecord-Server (ignored in Pacific `.gitignore`).
 

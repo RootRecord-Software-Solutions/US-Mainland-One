@@ -1,0 +1,55 @@
+{
+  "_comment": "Globe landing overlay flags (2026-09-29). Edit + reload the page; no server restart needed. See overlay/README.md.",
+  "enabled": true,
+  "allowUrlOverrides": false,
+  "rail": {
+    "enabled": false,
+    "startCollapsed": true
+  },
+  "legacyHud": "compact",
+  "cards": {
+    "signup": {
+      "enabled": true,
+      "mode": "placeholder",
+      "url": "",
+      "title": "Join Root Record",
+      "blurb": "Solar-powered, Hawaiʻi-run infrastructure. Accounts are coming soon."
+    },
+    "home": {
+      "enabled": false,
+      "url": "",
+      "title": "Root Record",
+      "blurb": "The public site is https://www.rootrecord.cloud/ on Vercel. This host is not that page."
+    },
+    "status": {
+      "enabled": true,
+      "pollSec": 15,
+      "healthUrls": [
+        "/healthz",
+        "/health"
+      ],
+      "stateUrl": "/api/state",
+      "deskHealthUrl": null,
+      "staleSec": 90
+    }
+  },
+  "globe": {
+    "spinToggle": true,
+    "spinDefault": "on",
+    "clickInfo": true,
+    "hover": true,
+    "pauseSpinWhileInfoOpen": true,
+    "showIp": true,
+    "showProcess": false,
+    "hardenTooltips": true,
+    "stableData": true,
+    "awsNode": {
+      "enabled": true,
+      "lat": 39.96,
+      "lng": -83.0,
+      "label": "AWS us-east-2 · Ohio",
+      "link": true,
+      "linkColor": "#38bdf8"
+    }
+  }
+}

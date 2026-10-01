@@ -1,0 +1,11 @@
+# RootRecord AWS fallback: tick every 30 s (0 MB resident between ticks).
+[Unit]
+Description=RootRecord AWS fallback tick every 30 s
+
+[Timer]
+OnBootSec=60
+OnUnitActiveSec=30
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

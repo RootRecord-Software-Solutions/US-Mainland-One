@@ -1,0 +1,18 @@
+[Unit]
+Description=Root Record Network Globe web UI (origin for www.rootrecord.cloud via cloudflared)
+After=network-online.target network-globe-feed-server.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/network-globe/network-globe
+Environment=PORT=8090
+Environment=NODE_OPTIONS=--max-old-space-size=160
+ExecStart=/usr/bin/node /home/ubuntu/network-globe/network-globe/server.js
+Restart=always
+RestartSec=3
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

@@ -2,13 +2,13 @@
 # ==============================================================================
 # # INFO — MUST HAVE
 # ------------------------------------------------------------------------------
-# Pull AWS host sysmon snapshot into Database/NETWORK/metrics/aws/
+# Pull AWS host sysmon snapshot into 2 - RootRecord-Database/Network/metrics/aws/
 # One owner path. Manual / on-demand — NO systemd timer (avoids Bruce pack-slot race).
 # HOW TO RUN: bash aws-sysmon-pull.sh
 # HOW TO ADD: keep DEST labeled; never embed secrets; do not dual-write ENERGY/watts.
 # ==============================================================================
 set -euo pipefail
-DEST="${RR_AWS_SYSMON_DEST:-/home/rootrecord/Database/NETWORK/metrics/aws}"
+DEST="${RR_AWS_SYSMON_DEST:-/home/rootrecord/RootRecord-Ecosystem/2 - RootRecord-Database/Network/metrics/aws}"
 HOST="${RR_AWS_SSH_HOST:-rr-aws}"
 STAMP=$(date '+%Y%m%d-%H%M%S')
 OUT="$DEST/aws-sysmon-${STAMP}.txt"

@@ -146,3 +146,21 @@ The body is still raw NDJSON. The browser can keep a byte offset and poll only n
 `data/hawaii-connections.sqlite3`
 
 It aggregates identical source/destination/protocol/process connections rather than storing every repeated observation. At the Hawaii daily rollover it sends the SQLite file to the existing Root Record Data Relay Telegram destination and deletes the local SQLite file **only after Telegram confirms success**. The live NDJSON feed is unaffected.
+
+## AWS-side deployment state (2026-09-29 HST) — mirrored here, not yet committed
+
+Deployed on AWS (`ubuntu@18.118.30.226`, t3.micro) on 2026-09-29 14:07–14:15 HST with Alexander's approval. Backups on AWS: `~/rootrecord/bin.bak-hawaii-trim-20260929-140641/` and `~/rootrecord/bin.bak-cloudflared-20260929-141048/`.
+
+### Automatic trim (independent of the desk)
+
+- Script: `maintain-hawaii-feed.sh` → AWS `/home/ubuntu/network-globe/network-globe/scripts/maintain-hawaii-feed.sh` (0775, `bash -n` OK, sha256 `d9447d84…` = this repo).
+- Schedule: **`ubuntu` user crontab** (the feed is owned by `ubuntu`, so no systemd/sudo is needed). The exact line is in [`cron/maintain-hawaii-feed.crontab`](./cron/maintain-hawaii-feed.crontab): every 15 min, `nice -n 10`, 64 MiB cap, 48 MiB window, output to syslog tag `maintain-hawaii-feed` (`journalctl -t maintain-hawaii-feed`).
+- To reinstall: `(crontab -l 2>/dev/null; grep -v '^#' cron/maintain-hawaii-feed.crontab) | ssh rr-aws-ip crontab -`. Check that the line isn't already there first.
+- The desk collector's own 15-minute trim call uses the same path and the same `flock` (`/tmp/rootrecord-hawaii-feed-maintenance.lock`), so the two can't overlap.
+- Caveat: the trim is truncate-in-place (same inode). When the AWS cron runs it, the desk's `cat >>` writer is still open (O_APPEND), so records appended during the sub-second rewrite can be lost, or one partial line can be left behind. The readers skip bad lines. `connection-history.py` and `server.js` detect `size < offset`, then re-read the retained window from 0, so the daily SQLite counters are inflated by one re-ingest of up to 48 MiB after each trim.
+
+### Web origin + Cloudflare tunnel
+
+- `network-globe-web.service`: `server.js` as `ubuntu` on `PORT=8090`. It is the origin for `www.rootrecord.cloud`.
+- `cloudflared-network-globe.service`: locally-managed tunnel `network-globe` `[redacted tunnel ID]`, config `~ubuntu/.cloudflared/config-globe.yml` (= `mirror/.cloudflared/config-globe.yml`, 0600 on AWS), credentials JSON 0600 (gitignored, never committed). cloudflared 2026.9.3 comes from the official `.deb`, runs with `--no-autoupdate`, and has no DNS or tunnel changes.
+- Install: copy both units to `/etc/systemd/system/`, then `sudo systemctl daemon-reload && sudo systemctl enable --now network-globe-web cloudflared-network-globe`.

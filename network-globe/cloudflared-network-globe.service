@@ -1,0 +1,15 @@
+[Unit]
+Description=Cloudflare Tunnel network-globe ([redacted tunnel ID]) -> www.rootrecord.cloud / ssh.rootrecord.cloud
+After=network-online.target network-globe-web.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+ExecStart=/usr/bin/cloudflared --no-autoupdate --config /home/ubuntu/.cloudflared/config-globe.yml tunnel run
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

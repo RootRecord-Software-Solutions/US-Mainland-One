@@ -27,6 +27,7 @@ const AWS_STATE_FILE = path.join(DATA_DIR, 'aws-state.json');
 const HAWAII_FILE = path.join(DATA_DIR, 'hawaii.ndjson');
 const HAWAII_OFFSET_FILE = path.join(DATA_DIR, 'hawaii-offset.json');
 const PAGE_FILE = path.join(ROOT, 'index.html');
+const OPERATIONS_FILE = path.join(DATA_DIR, 'operations.json');
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -103,11 +104,32 @@ function safeJson(code, data, res) {
   res.end(body);
 }
 
+const OVERLAY_FILES = {
+  '/overlay/overlay.js': ['overlay.js', 'application/javascript; charset=utf-8'],
+  '/overlay/overlay.css': ['overlay.css', 'text/css; charset=utf-8'],
+  '/overlay/overlay-config.json': ['overlay-config.json', 'application/json; charset=utf-8']
+};
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   if (url.pathname === '/' || url.pathname === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
     fs.createReadStream(PAGE_FILE).pipe(res);
+    return;
+  }
+  if (url.pathname === '/api/operations') {
+    fs.readFile(OPERATIONS_FILE, 'utf8', (err, text) => {
+      let data = { ok: false, detail: 'no_data' };
+      if (!err) {
+        try {
+          const parsed = JSON.parse(text);
+          if (parsed && typeof parsed === 'object') {
+            data = { ok: parsed.ok === true, as_of: parsed.as_of || null, power: parsed.power || null, weather: parsed.weather || null, kilauea: parsed.kilauea || null };
+          }
+        } catch (e) { /* keep no_data */ }
+      }
+      return safeJson(200, data, res);
+    });
     return;
   }
   if (url.pathname === '/healthz') {
@@ -124,6 +146,17 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/state') return safeJson(200, lastPayload || buildPayload(), res);
   if (url.pathname === '/api/history') return safeJson(200, history, res);
   if (url.pathname === '/api/aws') return safeJson(200, awsState, res);
+  // Landing overlay (2026-09-29): fixed allowlist only, no directory serving.
+  // Revert: delete this block plus the overlay <script> line in index.html.
+  if (Object.prototype.hasOwnProperty.call(OVERLAY_FILES, url.pathname)) {
+    const [file, type] = OVERLAY_FILES[url.pathname];
+    fs.readFile(path.join(ROOT, 'overlay', file), (err, buf) => {
+      if (err) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('Not found'); }
+      res.writeHead(200, { 'Content-Type': type, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+      res.end(buf);
+    });
+    return;
+  }
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('Not found');
 });

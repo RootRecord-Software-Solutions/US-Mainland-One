@@ -6,5 +6,5 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=/home/ubuntu/US-Mainland-Server
-ExecStart=/usr/bin/git pull --ff-only
+ExecStart=/home/ubuntu/US-Mainland-Server/references/aws-git-pull.sh
 User=ubuntu
