@@ -135,11 +135,49 @@ function closeProc(proc) {
 function openDecode(file) {
   return spawn('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
+    '-fflags', 'nobuffer',
     '-i', file,
     '-f', 's16le', '-ar', String(RATE), '-ac', '2',
+    '-flush_packets', '1',
     'pipe:1'
   ], { stdio: ['ignore', 'pipe', 'ignore'] });
 }
+
+function Decoder(file) {
+  this.proc = openDecode(file);
+  this.buf = Buffer.alloc(0);
+  this.closed = false;
+  const self = this;
+  this.proc.stdout.on('data', (chunk) => {
+    self.buf = self.buf.length ? Buffer.concat([self.buf, chunk]) : chunk;
+    if (self.buf.length > FRAME * 40 && !self.proc.stdout.isPaused()) self.proc.stdout.pause();
+  });
+  this.proc.stdout.on('end', () => { self.closed = true; });
+  this.proc.on('exit', () => { self.closed = true; });
+}
+
+Decoder.prototype.stop = function () {
+  closeProc(this.proc);
+  this.closed = true;
+  this.buf = Buffer.alloc(0);
+};
+
+Decoder.prototype.take = function () {
+  if (this.proc.stdout && this.proc.stdout.isPaused() && this.buf.length < FRAME * 15) {
+    try { this.proc.stdout.resume(); } catch (err) {}
+  }
+  if (this.buf.length < FRAME) {
+    if (!this.closed) return null;
+    if (!this.buf.length) return { ended: true };
+    const padded = Buffer.alloc(FRAME);
+    this.buf.copy(padded);
+    this.buf = Buffer.alloc(0);
+    return { pcm: padded, ended: true };
+  }
+  const pcm = Buffer.from(this.buf.subarray(0, FRAME));
+  this.buf = Buffer.from(this.buf.subarray(FRAME));
+  return { pcm, ended: false };
+};
 
 function startEncoder() {
   if (encoder && encoder.exitCode == null && !encoder.killed) return;
