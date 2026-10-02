@@ -153,6 +153,48 @@ function pad(n) {
   return (n < 10 ? '0' : '') + n;
 }
 
+const DAYPARTS = ['morning_report', 'midday_report', 'late_report'];
+
+function currentDaypart(date) {
+  const clock = hawaiiClock(date || stationNow());
+  const minute = clock.hour * 60 + clock.minute;
+  if (minute >= 9 * 60 && minute < 12 * 60) return 'morning_report';
+  if (minute >= 12 * 60 && minute < 21 * 60) return 'midday_report';
+  return 'late_report';
+}
+
+function daypartFile(id, ext) {
+  return inside(REPORTS, id + '_current' + ext);
+}
+
+function daypartPresent(id) {
+  for (const ext of ['.opus', '.ogg']) {
+    const full = daypartFile(id, ext);
+    if (full && fs.existsSync(full)) return true;
+  }
+  return false;
+}
+
+function dropOtherDayparts(date) {
+  const keep = currentDaypart(date);
+  if (!daypartPresent(keep)) return;
+  const removed = [];
+  for (const id of DAYPARTS) {
+    if (id === keep) continue;
+    for (const ext of ['.opus', '.ogg']) {
+      const full = daypartFile(id, ext);
+      if (!full) continue;
+      try {
+        fs.unlinkSync(full);
+        removed.push(id + '_current' + ext);
+      } catch (err) {
+        if (!err || err.code !== 'ENOENT') log('daypart_clear_error', { id: id, ext: ext });
+      }
+    }
+  }
+  if (removed.length) log('daypart_clear', { keep: keep, removed: removed.join(',') });
+}
+
 function shuffle(list) {
   const copy = list.slice();
   for (let i = copy.length - 1; i > 0; i--) {
@@ -422,7 +464,8 @@ function applyCatalog(data) {
 }
 
 function snapshotReports() {
-  const rows = reports.slice();
+  const keep = currentDaypart(stationNow());
+  const rows = reports.filter((row) => DAYPARTS.indexOf(row.id) < 0 || row.id === keep);
   const known = rows.length > 0 && rows.every((row) => {
     const duration = durationSec.get(row.ident);
     return typeof duration === 'number' && duration > 0;
@@ -514,7 +557,9 @@ function maybeStartChime() {
 
 function scan() {
   try {
-    applyCatalog(radio.catalog(stationNow()));
+    const clock = stationNow();
+    dropOtherDayparts(clock);
+    applyCatalog(radio.catalog(clock));
   } catch (err) {
     log('catalog_error', { detail: err.message });
   }
