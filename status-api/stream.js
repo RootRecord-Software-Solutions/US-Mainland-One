@@ -77,6 +77,10 @@ const station = {
   deferredSha: ''
 };
 
+const stageQueue = [];
+let stageProc = null;
+let stageItem = null;
+
 const clients = new Set();
 const preroll = [];
 let prerollBytes = 0;
@@ -429,6 +433,10 @@ function finishReport() {
   if (reportProc) reportProc.stop();
   reportProc = null;
   log('report_end', { id: done.id, ident: done.ident, pid: done.pid, seconds: elapsed });
+  if (station.phase === 'REPORTS' && stageQueue.length) {
+    const row = stageQueue.shift();
+    if (beginStaged(row, 'REPORTS')) return;
+  }
   if (station.phase !== 'REPORTS') return;
   if (!startNextReport()) restoreAfterFrame = true;
 }
@@ -512,9 +520,109 @@ function stopVoice() {
   reportProc = null;
   if (chimeProc) chimeProc.stop();
   chimeProc = null;
+  if (stageProc) stageProc.stop();
+  stageProc = null;
+  stageItem = null;
   station.playing = null;
   station.report = 'NONE';
   now.report = '';
+}
+
+function takeStage() {
+  const dir = path.join(RUNTIME, 'state', 'stage');
+  let names = [];
+  try {
+    names = fs.readdirSync(dir);
+  } catch (err) {
+    return;
+  }
+  names.sort();
+  for (const name of names) {
+    if (!name.endsWith('.json')) continue;
+    const full = path.join(dir, name);
+    try {
+      const row = JSON.parse(fs.readFileSync(full, 'utf8'));
+      fs.unlinkSync(full);
+      if (!row || !row.id) continue;
+      const hour = Number(row.hour);
+      const minute = Number(row.minute);
+      if (!Number.isInteger(hour) || (minute !== 0 && minute !== 30) || hour < 0 || hour > 23) continue;
+      stageQueue.push({ id: String(row.id), hour: hour, minute: minute });
+      log('stage_queued', { id: row.id, slot: pad(hour) + ':' + pad(minute) });
+    } catch (err) {
+      log('stage_skip', { file: name });
+    }
+  }
+}
+
+function cueFile(id, minute) {
+  const name = id + (minute === 30 ? '-half' : '-hour') + '.opus';
+  return inside(path.join(AUDIO, 'cues'), name);
+}
+
+function slotChime(hour, minute) {
+  return inside(path.join(AUDIO, 'chimes'), 'hour-' + pad(hour) + '-' + pad(minute) + '.opus');
+}
+
+function beginStaged(row, resume) {
+  const line = cueFile(row.id, row.minute);
+  const chime = slotChime(row.hour, row.minute);
+  const first = line && fs.existsSync(line) ? line : (chime && fs.existsSync(chime) ? chime : '');
+  if (!first) {
+    log('stage_missing', { id: row.id, slot: pad(row.hour) + ':' + pad(row.minute) });
+    return false;
+  }
+  stageItem = {
+    id: row.id,
+    hour: row.hour,
+    minute: row.minute,
+    resume: resume || 'NORMAL',
+    chime: chime,
+    part: first === line ? 'line' : 'chime'
+  };
+  station.phase = 'STAGED';
+  station.playing = { id: row.id, file: path.basename(first), at: Date.now() };
+  now.report = titleOf(row.id) + ' staged';
+  stageProc = new Decoder(first);
+  log('stage_start', { id: row.id, part: stageItem.part, slot: pad(row.hour) + ':' + pad(row.minute) });
+  return true;
+}
+
+function finishStaged() {
+  const done = stageItem;
+  if (stageProc) stageProc.stop();
+  stageProc = null;
+  stageItem = null;
+  station.playing = null;
+  now.report = '';
+  log('stage_end', { id: done ? done.id : '' });
+  if (done && done.resume === 'REPORTS') {
+    station.phase = 'REPORTS';
+    if (!startNextReport()) restoreAfterFrame = true;
+    return;
+  }
+  station.phase = 'NORMAL';
+  station.report = 'NONE';
+}
+
+function advanceStage() {
+  if (!stageItem) return;
+  if (stageItem.part === 'line' && stageItem.chime && fs.existsSync(stageItem.chime)) {
+    stageItem.part = 'chime';
+    station.playing = { id: stageItem.id, file: path.basename(stageItem.chime), at: Date.now() };
+    now.report = 'Time';
+    stageProc = new Decoder(stageItem.chime);
+    log('stage_chime', { id: stageItem.id, slot: pad(stageItem.hour) + ':' + pad(stageItem.minute) });
+    return;
+  }
+  finishStaged();
+}
+
+function pumpStage() {
+  if (stageItem || !stageQueue.length) return;
+  if (station.phase !== 'NORMAL' || station.report === 'ACTIVE') return;
+  const row = stageQueue.shift();
+  if (!beginStaged(row, 'NORMAL') && stageQueue.length) pumpStage();
 }
 
 function maybeBoundary() {
@@ -592,6 +700,10 @@ function endChime() {
   if (chimeProc) chimeProc.stop();
   chimeProc = null;
   log('chime_end', { slot: slot });
+  if (stageQueue.length) {
+    const row = stageQueue.shift();
+    if (beginStaged(row, 'REPORTS')) return;
+  }
   beginReportPass();
 }
 
@@ -658,7 +770,17 @@ async function step() {
     }
   }
   let voice = null;
-  if (station.phase === 'CHIME' && chimeProc) {
+  takeStage();
+  pumpStage();
+  if (station.phase === 'STAGED' && stageProc) {
+    const frame = stageProc.take();
+    if (frame && frame.pcm) voice = frame.pcm;
+    if (frame && frame.ended) {
+      stageProc.stop();
+      stageProc = null;
+      advanceStage();
+    }
+  } else if (station.phase === 'CHIME' && chimeProc) {
     const frame = chimeProc.take();
     if (frame && frame.pcm) voice = frame.pcm;
     if (frame && frame.ended) endChime();
