@@ -1,48 +1,18 @@
 'use strict';
 
 // Static library for the public radio stream.
-// Hawaii replaces each <report>_current.ogg. This process only reads the directory.
+// Hawaii replaces each <report>_current.opus. This process only reads the directory.
 
 const fs = require('fs');
 const path = require('path');
 
-const AUDIO = process.env.RADIO_DIR || path.join(__dirname, '..', 'communications', 'rootrecord-radio', 'audio');
+const RUNTIME = process.env.RADIO_ROOT || process.cwd();
+const AUDIO = process.env.RADIO_DIR || path.join(RUNTIME, 'audio');
 const REPORTS = process.env.RADIO_REPORTS_DIR || path.join(AUDIO, 'reports');
-const PLAY_LOG = process.env.RADIO_PLAY_LOG || '/home/ubuntu/rootrecord-radio/plays.log';
-const MUSIC_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,180}\.mp3$/;
-const REPORT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*_current\.ogg$/;
-const CHIME_NAME = /^hour-(?:[01]\d|2[0-3])-(?:00|30)\.wav$/;
-// Hawaii minutes [start, end). End is exclusive. A wrap (start > end) crosses midnight.
-const SLOT_WINDOW = {
-  morning_report: [9 * 60, 12 * 60],
-  midday_report: [12 * 60, 21 * 60],
-  late_report: [21 * 60, 9 * 60]
-};
-
-function hawaiiMinutes(date) {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Pacific/Honolulu',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23'
-  }).formatToParts(date || new Date());
-  let hour = 0;
-  let minute = 0;
-  for (const part of parts) {
-    if (part.type === 'hour') hour = Number(part.value) % 24;
-    if (part.type === 'minute') minute = Number(part.value);
-  }
-  return hour * 60 + minute;
-}
-
-function onAir(id, minutes) {
-  const span = SLOT_WINDOW[id];
-  if (!span) return true;
-  const start = span[0];
-  const end = span[1];
-  if (start <= end) return minutes >= start && minutes < end;
-  return minutes >= start || minutes < end;
-}
+const PLAY_LOG = process.env.RADIO_PLAY_LOG || path.join(path.dirname(AUDIO), 'plays.log');
+const MUSIC_NAME = /^[A-Za-z0-9][A-Za-z0-9 ._-]{0,180}\.opus$/;
+const REPORT_NAME = /^[a-z0-9]+(?:_[a-z0-9]+)*_current\.opus$/;
+const CHIME_NAME = /^hour-(?:[01]\d|2[0-3])-(?:00|30)\.opus$/;
 
 function cors(extra) {
   return Object.assign({
@@ -85,23 +55,23 @@ function loadLibrary() {
   }
 }
 
-function catalog(when) {
+function catalog() {
   const lib = loadLibrary();
   const music = list(path.join(AUDIO, 'music'), (name) => MUSIC_NAME.test(name)).map((row) => {
     const meta = lib[row.name] || {};
     const title = typeof meta.title === 'string' && meta.title.trim()
       ? meta.title.trim()
-      : row.name.replace(/\.mp3$/i, '');
+      : row.name.replace(/\.opus$/i, '');
     const description = typeof meta.description === 'string' ? meta.description.trim() : '';
     return { name: row.name, bytes: row.bytes, mtime: row.mtime, title, description };
   });
-  const minutes = hawaiiMinutes(when || new Date());
+  // Opus only. A leftover *_current.ogg for the same id is not a second copy.
   const reports = list(REPORTS, (name) => REPORT_NAME.test(name)).map((row) => ({
-    id: row.name.slice(0, -'_current.ogg'.length),
+    id: row.name.slice(0, -'_current.opus'.length),
     file: row.name,
     bytes: row.bytes,
     mtime: row.mtime
-  })).filter((row) => onAir(row.id, minutes));
+  }));
   return { ok: true, music, reports };
 }
 
@@ -233,10 +203,10 @@ function route(req, res, url) {
     res.end('Not found\n');
     return true;
   }
-  const type = kind === 'music' ? 'audio/mpeg' : (kind === 'chimes' ? 'audio/wav' : 'audio/ogg');
+  const type = 'audio/ogg';
   const cache = kind === 'reports' ? 'no-store' : 'public, max-age=86400';
   serveFile(req, res, filePath, type, cache, { kind, name });
   return true;
 }
 
-module.exports = { handle, catalog, AUDIO, REPORTS, onAir, hawaiiMinutes };
+module.exports = { handle, catalog, AUDIO, REPORTS };

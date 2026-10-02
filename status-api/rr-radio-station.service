@@ -1,0 +1,19 @@
+[Unit]
+Description=Root Record radio station (one mix, one encoder)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/rootrecord-radio
+Environment=HOST=127.0.0.1
+Environment=PORT=8092
+ExecStart=/home/ubuntu/rootrecord-radio/radio-run.sh
+Restart=on-failure
+RestartSec=2
+KillMode=mixed
+TimeoutStopSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -115,6 +115,21 @@ if [[ -f "$stream_src" && -f "$radio_src" ]]; then
   fi
 fi
 
+music_src="$API_DIR/install-music.sh"
+if [[ -f "$music_src" ]]; then
+  chmod 755 "$music_src"
+  RADIO_ROOT="$RADIO_ROOT" "$music_src"
+  echo "aws-git-pull: install-music"
+fi
+
+src_chimes="$REPO/rootrecord-radio/audio/chimes"
+dest_chimes="$RADIO_ROOT/audio/chimes"
+if [[ -d "$src_chimes" ]]; then
+  mkdir -p "$dest_chimes"
+  cp -a "$src_chimes/." "$dest_chimes/"
+  echo "aws-git-pull: copied chimes"
+fi
+
 if [[ -n "$after" && "$before" != "$after" ]]; then
   sudo -n systemctl restart rr-status-api.service
   echo "aws-git-pull: restarted status api"

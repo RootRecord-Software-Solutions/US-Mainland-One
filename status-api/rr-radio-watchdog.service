@@ -1,0 +1,6 @@
+[Unit]
+Description=Keep one radio station running
+
+[Service]
+Type=oneshot
+ExecStart=/home/ubuntu/radio-watchdog.sh

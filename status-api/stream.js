@@ -1,23 +1,34 @@
 'use strict';
 
 // One station. One encoder. Listeners join this live mix.
-// Music stays open underneath reports and chimes.
-// Code activation is a quiet-boundary exit, not a kill.
-// A Hawaii :00 or :30 chime holds the report decoder and then resumes it.
-// A new report file never restarts this process. Code activation waits
-// until no report and no chime are in progress, then exits 75.
+// Music stays open underneath the half-hour cycle.
+// Pacific/Honolulu HH:59:59 and HH:29:59 duck the bed, then the chime,
+// then every current report, longest first, then full music again.
+// A boundary cuts a cycle that is still running. A new file waits
+// for the next cycle. Code activation waits until the cycle is idle,
+// then exits 75.
 
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
+function runtimeRoot() {
+  if (process.env.RADIO_ROOT) return path.resolve(process.env.RADIO_ROOT);
+  const cwd = process.cwd();
+  if (fs.existsSync(path.join(cwd, 'audio'))) return cwd;
+  const beside = path.resolve(__dirname, '..', 'rootrecord-radio');
+  if (fs.existsSync(path.join(beside, 'audio'))) return beside;
+  return cwd;
+}
+
 const HOST = process.env.HOST || '127.0.0.1';
 const PORT = Number(process.env.PORT || 8092);
-const AUDIO = process.env.RADIO_DIR || '/home/ubuntu/rootrecord-radio/audio';
+const RUNTIME = runtimeRoot();
+const AUDIO = process.env.RADIO_DIR || path.join(RUNTIME, 'audio');
 const REPORTS = process.env.RADIO_REPORTS_DIR || path.join(AUDIO, 'reports');
-const HEARTBEAT = process.env.RADIO_HEARTBEAT || '/home/ubuntu/rootrecord-radio/state/heartbeat';
-const DEPLOY_FILE = process.env.RADIO_DEPLOY_PENDING || '/home/ubuntu/rootrecord-radio/deploy-pending';
+const HEARTBEAT = process.env.RADIO_HEARTBEAT || path.join(RUNTIME, 'state', 'heartbeat');
+const DEPLOY_FILE = process.env.RADIO_DEPLOY_PENDING || path.join(RUNTIME, 'deploy-pending');
 const RELEASE = process.env.RADIO_RELEASE || '';
 process.env.RADIO_DIR = AUDIO;
 process.env.RADIO_REPORTS_DIR = REPORTS;
@@ -26,8 +37,6 @@ const radio = require(process.env.RADIO_LIB || path.join(__dirname, 'radio'));
 
 const RATE = 44100;
 const FRAME = RATE * 2 * 2 / 10;
-const OPEN_MS = Number(process.env.RADIO_OPEN_MS || 12000);
-const GAP_MS = Number(process.env.RADIO_GAP_MS || 10 * 60 * 1000);
 const SCAN_MS = Number(process.env.RADIO_SCAN_MS || 5000);
 const DUCK = 0.25;
 const DEPLOY_EXIT = 75;
@@ -62,8 +71,8 @@ const station = {
   phase: 'NORMAL',
   report: 'NONE',
   playing: null,
-  pending: null,
   chimeSlot: '',
+  chimeTarget: null,
   chimeMissing: '',
   deferredSha: ''
 };
@@ -81,13 +90,9 @@ let order = [];
 let orderAt = 0;
 let lastTrack = '';
 let reports = [];
-let seen = {};
-let primed = false;
-let updates = [];
-let rotation = [];
-let rotAt = 0;
-let gapTimer = null;
-let opened = false;
+let cycleQueue = [];
+let restoreAfterFrame = false;
+const durationSec = new Map();
 let paced = 0;
 let paceAt = Date.now();
 let lastBeat = 0;
@@ -172,14 +177,25 @@ function closeProc(proc) {
   try { proc.kill('SIGKILL'); } catch (err) {}
 }
 
+function missingTool(proc, bin) {
+  proc.on('error', (err) => {
+    if (err && err.code === 'ENOENT') {
+      log('dependency_missing', { bin: bin });
+      process.exit(127);
+    }
+  });
+}
+
 function openDecode(file) {
-  return spawn('ffmpeg', [
+  const proc = spawn('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
     '-i', file,
     '-f', 's16le', '-ar', String(RATE), '-ac', '2',
     '-flush_packets', '1',
     'pipe:1'
   ], { stdio: ['ignore', 'pipe', 'pipe'] });
+  missingTool(proc, 'ffmpeg');
+  return proc;
 }
 
 function Decoder(file) {
@@ -236,6 +252,7 @@ function startEncoder() {
     '-f', 'mp3', '-write_xing', '0', '-flush_packets', '1',
     'pipe:1'
   ], { stdio: ['pipe', 'pipe', 'pipe'] });
+  missingTool(encoder, 'ffmpeg');
   log('encoder_up', { pid: encoder.pid });
   encoder.stdout.on('data', (chunk) => {
     preroll.push(chunk);
@@ -268,13 +285,13 @@ function startEncoder() {
   });
 }
 
-function voiceActive() {
-  return station.phase === 'CHIME' || station.report === 'ACTIVE';
+function ducked() {
+  return station.phase !== 'NORMAL';
 }
 
 function mix(music, voice) {
   const out = Buffer.alloc(FRAME);
-  const gain = voiceActive() ? DUCK : 1;
+  const gain = ducked() ? DUCK : 1;
   for (let i = 0; i < FRAME; i += 2) {
     let sample = music.readInt16LE(i) * gain;
     if (voice) sample += voice.readInt16LE(i);
@@ -299,15 +316,26 @@ function writePcm(buf) {
   });
 }
 
-function queued(list, id) {
-  for (let i = 0; i < list.length; i++) {
-    if (list[i].id === id) return i;
-  }
-  return -1;
-}
-
 function reportPath(name) {
   return inside(REPORTS, name);
+}
+
+function noteDuration(file, ident) {
+  if (durationSec.has(ident)) return;
+  durationSec.set(ident, null);
+  const proc = spawn('ffprobe', [
+    '-v', 'error',
+    '-show_entries', 'format=duration',
+    '-of', 'csv=p=0',
+    file
+  ], { stdio: ['ignore', 'pipe', 'ignore'] });
+  let text = '';
+  proc.stdout.on('data', (chunk) => { text += chunk; });
+  proc.on('error', () => { durationSec.set(ident, 0); });
+  proc.on('exit', () => {
+    const n = Number(String(text).trim());
+    durationSec.set(ident, Number.isFinite(n) && n > 0 ? n : 0);
+  });
 }
 
 function fileIdent(file) {
@@ -317,27 +345,40 @@ function fileIdent(file) {
 
 function beginReport(item) {
   const file = reportPath(item.file);
-  if (!file || !fs.existsSync(file)) return;
+  if (!file || !fs.existsSync(file)) {
+    log('report_skip', { id: item.id, detail: 'missing' });
+    return false;
+  }
   let ident = '';
   try {
     ident = fileIdent(file);
   } catch (err) {
     log('report_skip', { id: item.id, detail: 'stat' });
-    return;
+    return false;
+  }
+  if (item.ident && ident !== item.ident) {
+    log('report_skip', { id: item.id, detail: 'replaced' });
+    return false;
   }
   if (reportProc) reportProc.stop();
   station.report = 'ACTIVE';
   station.playing = { id: item.id, file: item.file, ident: ident, at: Date.now() };
-  station.pending = null;
   now.report = titleOf(item.id);
   reportProc = new Decoder(file);
   station.playing.pid = reportProc.proc.pid;
   log('report_start', { id: item.id, ident: ident, pid: station.playing.pid });
+  return true;
+}
+
+function startNextReport() {
+  while (cycleQueue.length) {
+    if (beginReport(cycleQueue.shift())) return true;
+  }
+  return false;
 }
 
 function finishReport() {
   if (!station.playing) return;
-  if (station.phase === 'CHIME' && station.report === 'HELD') return;
   const done = station.playing;
   const elapsed = ((Date.now() - (done.at || Date.now())) / 1000).toFixed(1);
   station.playing = null;
@@ -346,80 +387,8 @@ function finishReport() {
   if (reportProc) reportProc.stop();
   reportProc = null;
   log('report_end', { id: done.id, ident: done.ident, pid: done.pid, seconds: elapsed });
-  const again = station.pending;
-  station.pending = null;
-  if (again && again.id === done.id && eligible(again.id)) {
-    beginReport(again);
-    return;
-  }
-  pump();
-}
-
-function eligible(id) {
-  for (const row of reports) {
-    if (row.id === id) return true;
-  }
-  return false;
-}
-
-function enqueueUpdate(item) {
-  if (station.playing && station.playing.id === item.id) {
-    if (item.ident !== station.playing.ident) {
-      station.pending = item;
-      log('report_replacement', { id: item.id, ident: item.ident });
-    }
-    return;
-  }
-  const at = queued(updates, item.id);
-  if (at >= 0) {
-    if (item.ident !== updates[at].ident) updates[at] = item;
-    return;
-  }
-  rotation = rotation.filter((row) => row.id !== item.id);
-  updates.push(item);
-  log('queue_add', { id: item.id, ident: item.ident });
-  if (station.report === 'NONE' && station.phase !== 'CHIME') pump();
-}
-
-function enqueueRotation() {
-  if (!reports.length) return;
-  let item = reports[rotAt % reports.length];
-  rotAt += 1;
-  if (station.playing && station.playing.id === item.id) {
-    if (reports.length < 2) return;
-    item = reports[rotAt % reports.length];
-    rotAt += 1;
-  }
-  if (queued(updates, item.id) >= 0 || queued(rotation, item.id) >= 0) return;
-  rotation.push(item);
-}
-
-function pump() {
-  if (station.report !== 'NONE' || station.phase === 'CHIME') return;
-  if (updates.length) {
-    clearTimeout(gapTimer);
-    gapTimer = null;
-    beginReport(updates.shift());
-    return;
-  }
-  if (rotation.length) {
-    clearTimeout(gapTimer);
-    gapTimer = null;
-    beginReport(rotation.shift());
-    return;
-  }
-  if (!gapTimer) armGap();
-}
-
-function armGap() {
-  if (gapTimer || station.report !== 'NONE' || station.phase === 'CHIME' || updates.length || rotation.length) return;
-  const wait = opened ? GAP_MS : OPEN_MS;
-  opened = true;
-  gapTimer = setTimeout(() => {
-    gapTimer = null;
-    enqueueRotation();
-    pump();
-  }, wait);
+  if (station.phase !== 'REPORTS') return;
+  if (!startNextReport()) restoreAfterFrame = true;
 }
 
 function enrich(row) {
@@ -431,39 +400,116 @@ function enrich(row) {
   } catch (err) {
     return null;
   }
-  return { id: row.id, file: row.file, ident: ident };
+  noteDuration(file, ident);
+  return { id: row.id, file: row.file, ident: ident, bytes: Number(row.bytes) || 0 };
 }
 
 function applyCatalog(data) {
   tracks = (data.music || []).filter((row) => row && row.name);
-  const live = {};
   const next = [];
+  const live = {};
   for (const row of data.reports || []) {
     if (!row || !row.id || !row.file) continue;
     const item = enrich(row);
     if (!item) continue;
     next.push(item);
-    live[item.id] = item;
+    live[item.ident] = true;
   }
   reports = next;
-  updates = updates.filter((row) => live[row.id]);
-  rotation = rotation.filter((row) => live[row.id]);
-  if (station.pending && !live[station.pending.id]) station.pending = null;
-  if (!primed) {
-    for (const row of reports) seen[row.id] = row.ident;
-    primed = true;
+  for (const ident of durationSec.keys()) {
+    if (!live[ident]) durationSec.delete(ident);
+  }
+}
+
+function snapshotReports() {
+  const rows = reports.slice();
+  const known = rows.length > 0 && rows.every((row) => {
+    const duration = durationSec.get(row.ident);
+    return typeof duration === 'number' && duration > 0;
+  });
+  rows.sort((a, b) => {
+    if (known) {
+      const diff = durationSec.get(b.ident) - durationSec.get(a.ident);
+      if (diff) return diff;
+    }
+    if (b.bytes !== a.bytes) return b.bytes - a.bytes;
+    if (a.id < b.id) return -1;
+    if (a.id > b.id) return 1;
+    return 0;
+  });
+  return rows;
+}
+
+function boundaryTarget(clock) {
+  if (clock.second !== 59) return null;
+  if (clock.minute !== 29 && clock.minute !== 59) return null;
+  if (clock.minute === 29) {
+    return {
+      hour: clock.hour,
+      minute: 30,
+      slot: clock.date + 'T' + pad(clock.hour) + ':30'
+    };
+  }
+  let year = clock.year;
+  let month = clock.month;
+  let day = clock.day;
+  const hour = (clock.hour + 1) % 24;
+  if (hour === 0) {
+    const next = new Date(Date.UTC(year, month - 1, day) + 86400000);
+    year = next.getUTCFullYear();
+    month = next.getUTCMonth() + 1;
+    day = next.getUTCDate();
+  }
+  const date = year + '-' + pad(month) + '-' + pad(day);
+  return { hour: hour, minute: 0, slot: date + 'T' + pad(hour) + ':00' };
+}
+
+function stopVoice() {
+  if (reportProc) reportProc.stop();
+  reportProc = null;
+  if (chimeProc) chimeProc.stop();
+  chimeProc = null;
+  station.playing = null;
+  station.report = 'NONE';
+  now.report = '';
+}
+
+function maybeBoundary() {
+  const target = boundaryTarget(hawaiiClock(stationNow()));
+  if (!target || target.slot === station.chimeSlot) return;
+  const cutting = station.phase !== 'NORMAL' || station.report === 'ACTIVE';
+  if (cutting && station.playing) log('report_cut', { id: station.playing.id, slot: target.slot });
+  stopVoice();
+  restoreAfterFrame = false;
+  cycleQueue = snapshotReports();
+  station.chimeSlot = target.slot;
+  station.chimeTarget = target;
+  station.phase = 'DUCK';
+  log('cycle_duck', { slot: target.slot, reports: cycleQueue.length, cut: cutting ? 1 : 0 });
+}
+
+function beginReportPass() {
+  station.phase = 'REPORTS';
+  if (!startNextReport()) restoreAfterFrame = true;
+}
+
+function maybeStartChime() {
+  if (station.phase !== 'DUCK' || !station.chimeTarget) return;
+  const clock = hawaiiClock(stationNow());
+  if (clock.hour !== station.chimeTarget.hour || clock.minute !== station.chimeTarget.minute) return;
+  const slot = station.chimeTarget.slot;
+  const file = inside(path.join(AUDIO, 'chimes'), 'hour-' + pad(station.chimeTarget.hour) + '-' + pad(station.chimeTarget.minute) + '.opus');
+  if (!file || !fs.existsSync(file)) {
+    if (station.chimeMissing !== slot) {
+      station.chimeMissing = slot;
+      log('chime_missing', { slot: slot });
+    }
+    beginReportPass();
     return;
   }
-  for (const row of reports) {
-    const prev = seen[row.id];
-    if (prev == null || row.ident !== prev) {
-      enqueueUpdate(row);
-      seen[row.id] = row.ident;
-    }
-  }
-  for (const id of Object.keys(seen)) {
-    if (!live[id]) delete seen[id];
-  }
+  station.phase = 'CHIME';
+  chimeProc = new Decoder(file);
+  log('chime_start', { slot: slot, pid: chimeProc.proc.pid });
 }
 
 function scan() {
@@ -490,46 +536,18 @@ function ensureMusic() {
   const file = inside(path.join(AUDIO, 'music'), row.name);
   if (!file || !fs.existsSync(file)) return;
   lastTrack = row.name;
-  now.music = row.title || row.name.replace(/\.mp3$/i, '');
+  now.music = row.title || row.name.replace(/\.opus$/i, '');
   now.description = row.description || '';
   musicProc = new Decoder(file);
   log('music_start', { pid: musicProc.proc.pid, title: now.music });
-}
-
-function maybeChime() {
-  if (station.phase === 'CHIME') return;
-  const clock = hawaiiClock(stationNow());
-  if (clock.minute !== 0 && clock.minute !== 30) return;
-  const slot = clock.date + 'T' + pad(clock.hour) + ':' + pad(clock.minute);
-  if (slot === station.chimeSlot) return;
-  const file = inside(path.join(AUDIO, 'chimes'), 'hour-' + pad(clock.hour) + '-' + pad(clock.minute) + '.wav');
-  if (!file || !fs.existsSync(file)) {
-    if (station.chimeMissing !== slot) {
-      station.chimeMissing = slot;
-      log('chime_missing', { slot: slot });
-    }
-    return;
-  }
-  station.chimeSlot = slot;
-  station.phase = 'CHIME';
-  if (station.report === 'ACTIVE' && reportProc && station.playing) {
-    station.report = 'HELD';
-    log('report_held', { id: station.playing.id, pid: station.playing.pid });
-  }
-  chimeProc = new Decoder(file);
-  log('chime_start', { slot: slot, pid: chimeProc.proc.pid });
 }
 
 function endChime() {
   const slot = station.chimeSlot;
   if (chimeProc) chimeProc.stop();
   chimeProc = null;
-  station.phase = 'NORMAL';
   log('chime_end', { slot: slot });
-  if (station.report === 'HELD' && station.playing) {
-    station.report = 'ACTIVE';
-    log('report_resumed', { id: station.playing.id, pid: station.playing.pid });
-  }
+  beginReportPass();
 }
 
 function beat() {
@@ -550,7 +568,7 @@ function beat() {
 }
 
 function busy() {
-  return station.phase === 'CHIME' || station.report === 'ACTIVE' || station.report === 'HELD';
+  return station.phase !== 'NORMAL';
 }
 
 function considerDeploy() {
@@ -564,7 +582,7 @@ function considerDeploy() {
   if (busy()) {
     if (station.deferredSha !== sha) {
       station.deferredSha = sha;
-      log('deploy_deferred', { sha: sha, reason: station.phase === 'CHIME' ? 'chime' : 'report' });
+      log('deploy_deferred', { sha: sha, reason: station.phase === 'NORMAL' ? 'report' : station.phase.toLowerCase() });
     }
     return;
   }
@@ -572,9 +590,18 @@ function considerDeploy() {
   shutdown(DEPLOY_EXIT, 'deploy_activate');
 }
 
+function releaseDuck() {
+  if (!restoreAfterFrame) return;
+  restoreAfterFrame = false;
+  if (station.phase === 'REPORTS' && station.report === 'NONE') {
+    station.phase = 'NORMAL';
+    log('cycle_restore', { slot: station.chimeSlot || '' });
+  }
+}
+
 async function step() {
-  maybeChime();
-  if (station.report === 'NONE' && station.phase !== 'CHIME') pump();
+  maybeBoundary();
+  maybeStartChime();
   ensureMusic();
   let musicPcm = Buffer.alloc(FRAME);
   if (musicProc) {
@@ -600,6 +627,7 @@ async function step() {
     }
   }
   await writePcm(mix(musicPcm, voice));
+  releaseDuck();
   beat();
   considerDeploy();
   paced += 1;
@@ -622,7 +650,6 @@ function shutdown(code, reason) {
   if (stopped) return;
   stopped = true;
   log('station_exit', { reason: reason || 'stop', code: code });
-  clearTimeout(gapTimer);
   if (musicProc) musicProc.stop();
   if (reportProc) reportProc.stop();
   if (chimeProc) chimeProc.stop();
@@ -643,7 +670,7 @@ function nowBody() {
     description: now.description,
     report: station.phase === 'CHIME' ? 'Time' : now.report,
     chime: station.phase === 'CHIME',
-    duck: voiceActive() ? DUCK : 1,
+    duck: ducked() ? DUCK : 1,
     phase: station.phase,
     reportState: station.report,
     musicPid: musicProc && musicProc.proc ? musicProc.proc.pid : 0,
@@ -716,6 +743,5 @@ server.listen(PORT, HOST, () => {
   startEncoder();
   scan();
   setInterval(scan, SCAN_MS);
-  armGap();
   loop();
 });

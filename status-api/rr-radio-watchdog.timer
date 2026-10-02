@@ -1,0 +1,12 @@
+[Unit]
+Description=Watch the radio station once a minute
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+AccuracySec=10s
+Persistent=true
+Unit=rr-radio-watchdog.service
+
+[Install]
+WantedBy=timers.target
