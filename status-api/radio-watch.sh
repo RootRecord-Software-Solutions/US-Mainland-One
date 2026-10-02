@@ -78,7 +78,10 @@ catalog="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 http://127.0.0.
 
 api_count="$(count_cmd '/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js')"
 caddy_count="$(count_cmd '/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile')"
-stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
+stream_count="$(count_cmd '/bin/bash /home/ubuntu/rootrecord-radio/radio-run.sh')"
+if [[ "$stream_count" -eq 0 ]]; then
+  stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
+fi
 
 python3 - "$STATE" "$api_action" "$api_count" "$caddy_action" "$caddy_count" "$catalog" "$stream_action" "$stream_count" << 'PY'
 import json, sys

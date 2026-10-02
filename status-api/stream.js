@@ -97,7 +97,7 @@ function log(event, fields) {
   for (const key of Object.keys(data)) {
     parts.push(key + '=' + String(data[key]).replace(/\s+/g, '_'));
   }
-  console.log(parts.join(' '));
+  fs.writeSync(1, parts.join(' ') + '\n');
 }
 
 function titleOf(id) {
