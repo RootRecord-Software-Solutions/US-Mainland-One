@@ -1,6 +1,6 @@
 # Root Record radio
 
-The public page is `https://www.rootrecord.cloud/radio`. This folder is the audio library on the Mainland host. The page does not hold the files.
+The public page is `https://www.rootrecord.cloud/radio`. Listeners use `https://radio.rootrecord.cloud/radio/live.mp3` and `https://radio.rootrecord.cloud/radio/now.json`. Caddy on Mainland One sends those two paths to `127.0.0.1:8092`. This folder is the audio library on the Mainland host. The page does not hold the files.
 
 `audio/music/` is the shuffle bed. Live voice reports are not stored in this checkout. They sit at `/home/ubuntu/rootrecord-radio/audio/reports/` on the Mainland host, one `<report>_current.ogg` per report. A new render replaces that file and removes every other name in that folder. Nothing here is fetched from Hawaiʻi.
 
