@@ -560,14 +560,16 @@ function cueFile(id, minute) {
   return inside(path.join(AUDIO, 'cues'), name);
 }
 
-function slotChime(hour, minute) {
-  return inside(path.join(AUDIO, 'chimes'), 'hour-' + pad(hour) + '-' + pad(minute) + '.opus');
+function noticeFile() {
+  return inside(path.join(AUDIO, 'cues'), 'notify.opus');
 }
 
 function beginStaged(row, resume) {
   const line = cueFile(row.id, row.minute);
-  const chime = slotChime(row.hour, row.minute);
-  const first = line && fs.existsSync(line) ? line : (chime && fs.existsSync(chime) ? chime : '');
+  const notice = noticeFile();
+  const hasNotice = notice && fs.existsSync(notice);
+  const hasLine = line && fs.existsSync(line);
+  const first = hasNotice ? notice : (hasLine ? line : '');
   if (!first) {
     log('stage_missing', { id: row.id, slot: pad(row.hour) + ':' + pad(row.minute) });
     return false;
@@ -577,8 +579,8 @@ function beginStaged(row, resume) {
     hour: row.hour,
     minute: row.minute,
     resume: resume || 'NORMAL',
-    chime: chime,
-    part: first === line ? 'line' : 'chime'
+    line: line,
+    part: hasNotice ? 'notice' : 'line'
   };
   station.phase = 'STAGED';
   station.playing = { id: row.id, file: path.basename(first), at: Date.now() };
@@ -607,12 +609,12 @@ function finishStaged() {
 
 function advanceStage() {
   if (!stageItem) return;
-  if (stageItem.part === 'line' && stageItem.chime && fs.existsSync(stageItem.chime)) {
-    stageItem.part = 'chime';
-    station.playing = { id: stageItem.id, file: path.basename(stageItem.chime), at: Date.now() };
-    now.report = 'Time';
-    stageProc = new Decoder(stageItem.chime);
-    log('stage_chime', { id: stageItem.id, slot: pad(stageItem.hour) + ':' + pad(stageItem.minute) });
+  if (stageItem.part === 'notice' && stageItem.line && fs.existsSync(stageItem.line)) {
+    stageItem.part = 'line';
+    station.playing = { id: stageItem.id, file: path.basename(stageItem.line), at: Date.now() };
+    now.report = titleOf(stageItem.id) + ' staged';
+    stageProc = new Decoder(stageItem.line);
+    log('stage_line', { id: stageItem.id, slot: pad(stageItem.hour) + ':' + pad(stageItem.minute) });
     return;
   }
   finishStaged();
