@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 20:45 HST |
-| Commit | `1be1b9a` Merge remote-tracking branch 'origin/main' |
+| Checked | 2026-10-01 21:00 HST |
+| Commit | `5e11626` status: AWS live README 2026-10-02T06:45Z |
 | Checkout | even with GitHub; local edits: network-globe/package-lock.json |
-| Last pull | 2026-10-02T06:44:33+00:00 — Already up to date. |
-| Disk | 2.8G free of 6.7G (59% used) |
-| Uptime | up 1 hour, 21 minutes |
+| Last pull | 2026-10-02T06:59:13+00:00 — Already up to date. |
+| Disk | 2.4G free of 6.7G (64% used) |
+| Uptime | up 1 hour, 36 minutes |
 | rr-status-api | inactive (masked) |
 | network-globe-web | inactive (masked) |
 | network-globe-feed | inactive (masked) |
