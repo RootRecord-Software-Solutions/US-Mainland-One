@@ -2,6 +2,7 @@
 
 // One station. One encoder. Listeners join this live mix.
 // Music stays open underneath reports and chimes.
+// Code activation is a quiet-boundary exit, not a kill.
 // A Hawaii :00 or :30 chime holds the report decoder and then resumes it.
 // A new report file never restarts this process. Code activation waits
 // until no report and no chime are in progress, then exits 75.
