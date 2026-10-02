@@ -5,8 +5,10 @@
 // Pacific/Honolulu HH:59:59 and HH:29:59 duck the bed, then the chime,
 // then every current report, longest first, then full music again.
 // A boundary cuts a cycle that is still running. A new file waits
-// for the next cycle. Code activation waits until the cycle is idle,
-// then exits 75.
+// for the next cycle. A receipt plays when its note arrives and the
+// air is idle. It waits out a report that is already speaking. It is
+// not inserted between reports. Code activation waits until the cycle
+// is idle, then exits 75.
 
 const http = require('http');
 const fs = require('fs');
@@ -433,10 +435,6 @@ function finishReport() {
   if (reportProc) reportProc.stop();
   reportProc = null;
   log('report_end', { id: done.id, ident: done.ident, pid: done.pid, seconds: elapsed });
-  if (station.phase === 'REPORTS' && stageQueue.length) {
-    const row = stageQueue.shift();
-    if (beginStaged(row, 'REPORTS')) return;
-  }
   if (station.phase !== 'REPORTS') return;
   if (!startNextReport()) restoreAfterFrame = true;
 }
@@ -702,10 +700,6 @@ function endChime() {
   if (chimeProc) chimeProc.stop();
   chimeProc = null;
   log('chime_end', { slot: slot });
-  if (stageQueue.length) {
-    const row = stageQueue.shift();
-    if (beginStaged(row, 'REPORTS')) return;
-  }
   beginReportPass();
 }
 
