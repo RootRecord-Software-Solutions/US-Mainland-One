@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 20:45 HST |
-| Commit | `1be1b9a` Merge remote-tracking branch 'origin/main' |
+| Checked | 2026-10-01 21:45 HST |
+| Commit | `b0e367c` status: AWS live README 2026-10-02T07:30Z |
 | Checkout | even with GitHub; local edits: network-globe/package-lock.json |
-| Last pull | 2026-10-02T06:44:33+00:00 — Already up to date. |
+| Last pull | 2026-10-02T07:44:33+00:00 — Already up to date. |
 | Disk | 2.8G free of 6.7G (59% used) |
-| Uptime | up 1 hour, 21 minutes |
+| Uptime | up 2 hours, 21 minutes |
 | rr-status-api | inactive (masked) |
 | network-globe-web | inactive (masked) |
 | network-globe-feed | inactive (masked) |
@@ -32,9 +32,9 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 | cloudflared | active (enabled) |
 | aws-git-pull.timer | active (enabled) |
 | rr-pacific-fetch.timer | inactive (disabled) |
-| rr-radio-plays-purge.timer | active (enabled) |
-| rr-radio-watch.timer | active (enabled) |
-| rr-radio-stream | active (enabled) |
+| rr-radio-plays-purge.timer | inactive (masked) |
+| rr-radio-watch.timer | inactive (masked) |
+| rr-radio-stream | inactive (masked) |
 | Play log | 0 line(s) since the hourly wipe |
 <!-- aws-status:end -->
 
