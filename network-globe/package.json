@@ -1,1 +1,0 @@
-{"name":"network-globe","version":"3.0.1","private":true,"description":"Minimal web runtime for Network Globe","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"express":"^5.1.0","cors":"^2.8.5"}}
