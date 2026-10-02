@@ -1,12 +1,12 @@
 # ==============================================================================
 # # INFO — MUST HAVE (future agents / operators)
 # ------------------------------------------------------------------------------
-# This desk is the US-Mainland-Server git work tree.
+# This desk is the US-Mainland-One git work tree.
 # OmniBook pushes via Pacific poller github_sync_all (every 300s).
 # AWS pulls only (every 60s) — never rclone bisync.
 # Intake data → 2 - RootRecord-Database/Intake/
 # Baks → 2 - RootRecord-Database/Github/  (never under skills/, never /home/rootrecord/Database)
-# Pacific .gitignore excludes us-mainland-server/ from Solar-Pacific repo.
+# Pacific .gitignore excludes us-mainland-one/ from Solar-Pacific repo.
 # ==============================================================================
 #
 # HOW TO ADD A JOB (no AI required)
@@ -37,11 +37,11 @@ ON_BOOT = [
         "id": "self_desk",
         "enabled": True,
         "priority": 0,
-        "description": "Registry: this folder is the US-Mainland-Server work tree.",
+        "description": "Registry: this folder is the US-Mainland-One work tree.",
         "builtin": "",
-        "command": "printf 'us-mainland-server desk @ %s\\n' \"$(pwd)\" && git rev-parse --short HEAD && git remote -v | sed -E 's#(x-access-token:)[^@]+@#\\1***@#g' | head -4",
+        "command": "printf 'us-mainland-one desk @ %s\\n' \"$(pwd)\" && git rev-parse --short HEAD && git remote -v | sed -E 's#(x-access-token:)[^@]+@#\\1***@#g' | head -4",
         "timeout_sec": 15,
-        "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+        "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
         "env": {},
     },
     # --- TEMPLATE (on boot) — copy from here -----------------------------------
@@ -51,9 +51,9 @@ ON_BOOT = [
     #     "priority": 2,
     #     "description": "One-line plain description.",
     #     "builtin": "",
-    #     "command": "/home/rootrecord/.ollama/skills/us-mainland-server/scripts/example.sh",
+    #     "command": "/home/rootrecord/.ollama/skills/us-mainland-one/scripts/example.sh",
     #     "timeout_sec": 120,
-    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
     #     "env": {},
     # },
     # --- end TEMPLATE ----------------------------------------------------------
@@ -71,7 +71,7 @@ ONCE_AT_START = [
     #     "builtin": "",
     #     "command": "",
     #     "timeout_sec": 300,
-    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
     #     "env": {},
     # },
     # --- end TEMPLATE ----------------------------------------------------------
@@ -123,7 +123,7 @@ EVERY_MINUTE = [
     #     "builtin": "",
     #     "command": "",
     #     "timeout_sec": 120,
-    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
     #     "env": {},
     # },
     # --- end TEMPLATE ----------------------------------------------------------
@@ -142,7 +142,7 @@ EVERY_HOUR = [
     #     "builtin": "",
     #     "command": "",
     #     "timeout_sec": 300,
-    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+    #     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
     #     "env": {},
     # },
     # --- end TEMPLATE ----------------------------------------------------------
@@ -162,7 +162,7 @@ EVERY_HOUR = [
 #     "builtin": "",
 #     "command": "/path/to/script.sh",
 #     "timeout_sec": 120,
-#     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-server",
+#     "cwd": "/home/rootrecord/.ollama/skills/us-mainland-one",
 #     "env": {},
 # },
 # ==============================================================================

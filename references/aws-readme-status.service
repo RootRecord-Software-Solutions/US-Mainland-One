@@ -1,5 +1,5 @@
 [Unit]
-Description=Push the US-Mainland-Server README live status
+Description=Push the US-Mainland-One README live status
 
 [Service]
 Type=oneshot

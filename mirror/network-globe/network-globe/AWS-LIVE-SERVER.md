@@ -20,7 +20,7 @@ The AWS file had `app.use(express.static(__dirname))`, so `/server.js`, `/packag
 
 ```diff
 --- /tmp/aws-server.before.js	2026-09-29 14:45:05.957936345 -1000
-+++ "/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-Server/mirror/network-globe/network-globe/server.aws-live-2026-09-29-allowlist.js"	2026-09-29 14:45:03.015929471 -1000
++++ "/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-One/mirror/network-globe/network-globe/server.aws-live-2026-09-29-allowlist.js"	2026-09-29 14:45:03.015929471 -1000
 @@ -14,7 +14,29 @@
  
  app.use(cors());

@@ -1,5 +1,5 @@
 [Unit]
-Description=Refresh the US-Mainland-Server README status every 15 minutes
+Description=Refresh the US-Mainland-One README status every 15 minutes
 
 [Timer]
 OnCalendar=*:0/15

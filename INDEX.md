@@ -1,3 +1,3 @@
-# Desk — us-mainland-server
+# Desk — us-mainland-one
 
-Git work tree for US-Mainland-Server. Jobs templates: `scripts/jobs.py`.
+Git work tree for US-Mainland-One. Jobs templates: `scripts/jobs.py`.

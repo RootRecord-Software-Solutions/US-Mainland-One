@@ -3,4 +3,6 @@ credentials-file: /home/ubuntu/.cloudflared/939b16f7-7d13-4776-bd4d-80fe8021fc72
 ingress:
   - hostname: api.rootrecord.cloud
     service: http://127.0.0.1:8091
+  - hostname: ml1.rootrecord.cloud
+    service: ssh://localhost:22
   - service: http_status:404

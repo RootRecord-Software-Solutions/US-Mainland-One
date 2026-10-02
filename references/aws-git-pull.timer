@@ -1,5 +1,5 @@
 [Unit]
-Description=Pull US-Mainland-Server from GitHub every minute
+Description=Pull US-Mainland-One from GitHub every minute
 
 [Timer]
 OnBootSec=1min

@@ -2,7 +2,7 @@
 """rr_fallback_tick.py: AWS fallback runtime, ONE tick (rr-fallback-runner.timer, every 30 s).
 
 INFO (future agents): must read
-- Desk-canonical. Source: US-Mainland-Server `fallback/`, deployed by `fallback/deploy-aws-fallback.sh`.
+- Desk-canonical. Source: US-Mainland-One `fallback/`, deployed by `fallback/deploy-aws-fallback.sh`.
   Never edit on AWS. Design: Library 08-ideas/2026-09-29-aws-fallback-rebuild.md.
 - Oneshot on a timer, so there is 0 MB resident between ticks. Stdlib only, lazy imports.
 - Truth = ~/rootrecord/fallback/flags/<id> ("1"/"0"). Service-type flags are applied by the root

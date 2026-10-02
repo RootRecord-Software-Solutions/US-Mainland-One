@@ -4,7 +4,7 @@
 set -u
 
 REPO="/home/ubuntu/US-Mainland-Server"
-REMOTE="git@github.com:RootRecord-Software-Solutions/US-Mainland-Server.git"
+REMOTE="git@github.com:RootRecord-Software-Solutions/US-Mainland-One.git"
 KEY="/home/ubuntu/.ssh/mainland-status-ed25519"
 PLAY_LOG="/home/ubuntu/rootrecord-radio/plays.log"
 
@@ -111,9 +111,9 @@ if git diff --quiet -- README.md; then
   exit 0
 fi
 
-export GIT_AUTHOR_NAME="US-MAINLAND-SERVER"
+export GIT_AUTHOR_NAME="US-MAINLAND-ONE"
 export GIT_AUTHOR_EMAIL="alexanderstorey94@gmail.com"
-export GIT_COMMITTER_NAME="US-MAINLAND-SERVER"
+export GIT_COMMITTER_NAME="US-MAINLAND-ONE"
 export GIT_COMMITTER_EMAIL="alexanderstorey94@gmail.com"
 
 git add -- README.md

@@ -1,4 +1,4 @@
-# RootRecord AWS fallback: one runtime tick. Desk-canonical (US-Mainland-Server fallback/system/), deployed by deploy-aws-fallback.sh.
+# RootRecord AWS fallback: one runtime tick. Desk-canonical (US-Mainland-One fallback/system/), deployed by deploy-aws-fallback.sh.
 [Unit]
 Description=RootRecord AWS fallback tick (desk_watch, relay_buffer, status, retention)
 After=network-online.target

@@ -1,4 +1,4 @@
-# US-Mainland-Server
+# US-Mainland-One
 
 > **Continuity / secondary node.** Canonical ops authority is the **org**.
 
@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 19:15 HST |
-| Commit | `39ebe43` Merge remote-tracking branch 'origin/main' |
+| Checked | 2026-10-01 19:30 HST |
+| Commit | `d0b1fde` Merge remote-tracking branch 'origin/main' |
 | Checkout | even with GitHub; local edits: network-globe/package-lock.json |
-| Last pull | 2026-10-02T05:14:09+00:00 — Already up to date. |
+| Last pull | 2026-10-02T05:29:42+00:00 — Already up to date. |
 | Disk | 2.3G free of 6.7G (66% used) |
-| Uptime | up 5 days, 14 hours, 32 minutes |
+| Uptime | up 6 minutes |
 | rr-status-api | active (enabled) |
 | network-globe-web | active (enabled) |
 | network-globe-feed | active (enabled) |
@@ -42,7 +42,7 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 ## Desk checkout layout (G3, 2026-09-29 HST)
 
-Desk path: `/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-Server/` (sibling of Pacific).
+Desk path: `/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-One/` (sibling of Pacific).
 AWS path: `/home/ubuntu/US-Mainland-Server/`. `aws-git-pull.timer` fast-forwards that checkout every minute. The host rewrites the live status block above and pushes it back. Runtime copies under `/home/ubuntu/{automations,network-globe}` are deployed separately.
 
 | Folder (current, lowercase — kept because AWS paths and docs reference it) | Proposed G3 Title-case name | What it holds | Runs on |
@@ -57,7 +57,7 @@ AWS path: `/home/ubuntu/US-Mainland-Server/`. `aws-git-pull.timer` fast-forwards
 | `scripts/` | `Github/` + `Scripts/` | desk-side pull helpers (`aws-sysmon-pull.sh`, `ssh-datapack-pull.sh`), G2 `jobs.py` template | desk |
 | `references/`, `notes/`, `docs/` | `References/`, `Notes/`, `Docs/` | AWS pull timer, identity, packer notes, 2026-09-22 stopping point, avatar | — |
 
-**No rename was done.** A Title-case move needs a coordinated AWS path change and sign-off (see Library `06-Domains-and-External-Systems/US-Mainland-Server.md`).
+**No rename was done.** A Title-case move needs a coordinated AWS path change and sign-off (see Library `06-Domains-and-External-Systems/US-Mainland-One.md`).
 The empty `Communications/` folder is the pre-import desk placeholder (2026-09-27); it is not tracked by git and was left in place.
 
 Secrets: real values only in `/home/ubuntu/.env` (AWS) — root `.env.example` lists variable **names only**; `.env` / `.env.*` are gitignored.

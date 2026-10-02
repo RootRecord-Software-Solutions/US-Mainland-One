@@ -1,5 +1,5 @@
 [Unit]
-Description=US-Mainland-Server git pull --ff-only (GitHub)
+Description=US-Mainland-One git pull --ff-only (GitHub)
 After=network-online.target
 Wants=network-online.target
 

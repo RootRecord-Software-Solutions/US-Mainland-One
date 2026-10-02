@@ -80,7 +80,7 @@ Target: `/home/ubuntu/network-globe/network-globe/`, served by `network-globe-we
 Do **not** copy the mirror `server.js` or `index.html` over the runtime copies. They are different implementations (as of 14:29 HST the runtime md5s are `index.html f3d03774…` and `server.js 5b5ef979…`).
 
 ```bash
-G="/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-Server/mirror/network-globe/network-globe"
+G="/home/rootrecord/RootRecord-Ecosystem/1 - Servers/2 - RootRecord-US-Mainland-One/mirror/network-globe/network-globe"
 H=/home/ubuntu/network-globe/network-globe
 # 0. pre-check: the runtime page is unchanged since the design review
 ssh rr-aws-ip "md5sum $H/index.html"            # expect f3d0377428a3ac467941c99a075b9d24
