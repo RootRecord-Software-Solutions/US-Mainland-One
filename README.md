@@ -19,12 +19,12 @@ The AWS host fills this block in and pushes it to GitHub. A desk publish keeps t
 
 | | |
 | --- | --- |
-| Checked | 2026-10-01 21:15 HST |
-| Commit | `a6b1eca` status: AWS live README 2026-10-02T07:00Z |
+| Checked | 2026-10-01 21:30 HST |
+| Commit | `5db28e9` status: AWS live README 2026-10-02T07:15Z |
 | Checkout | even with GitHub; local edits: network-globe/package-lock.json |
-| Last pull | 2026-10-02T07:14:45+00:00 — Already up to date. |
+| Last pull | 2026-10-02T07:30:02+00:00 — aws-git-pull: pull failed |
 | Disk | 2.8G free of 6.7G (59% used) |
-| Uptime | up 1 hour, 51 minutes |
+| Uptime | up 2 hours, 6 minutes |
 | rr-status-api | inactive (masked) |
 | network-globe-web | inactive (masked) |
 | network-globe-feed | inactive (masked) |
