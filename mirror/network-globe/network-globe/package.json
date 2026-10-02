@@ -1,8 +1,0 @@
-{
-  "name": "network-globe",
-  "version": "3.0.1",
-  "description": "Live network and AWS activity globe with automatic local persistence",
-  "main": "server.js",
-  "scripts": { "start": "node server.js", "start:root": "sudo -E node server.js" },
-  "dependencies": {}
-}

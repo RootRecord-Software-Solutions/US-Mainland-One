@@ -1,7 +1,0 @@
-# RootRecord AWS fallback: apply service-type flags (root; hard-coded id->unit map in /usr/local/sbin/rr-fallback-apply).
-[Unit]
-Description=RootRecord AWS fallback: apply service flags to systemd
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/rr-fallback-apply
