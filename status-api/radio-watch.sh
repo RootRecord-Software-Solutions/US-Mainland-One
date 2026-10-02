@@ -1,7 +1,8 @@
 #!/bin/bash
 # Keep one station, one status API, and one Caddy.
-# A healthy process is left running. A missing process is started.
-# More than one match is collapsed to the systemd unit.
+# A healthy station is left running. A missing unit is started.
+# A heartbeat older than 30 seconds is a hung mixer. A new report,
+# a new file, or a deployment is not a failure.
 set -u
 
 exec 9>/tmp/rr-radio-watch.lock
@@ -24,24 +25,36 @@ listening() {
 
 api_count="$(count_cmd '/usr/bin/node /home/ubuntu/US-Mainland-Server/status-api/server.js')"
 caddy_count="$(count_cmd '/usr/bin/caddy run --environ --config /etc/caddy/Caddyfile')"
-stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
+stream_count="$(count_cmd '/bin/bash /home/ubuntu/rootrecord-radio/radio-run.sh')"
+if [[ "$stream_count" -eq 0 ]]; then
+  stream_count="$(count_cmd '/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js')"
+fi
 api_up=0
 caddy_up=0
 stream_up=0
 listening '127.0.0.1:8091' && api_up=1
 listening ':443 ' && caddy_up=1
-listening '127.0.0.1:8092' && stream_up=1
+systemctl is-active --quiet rr-radio-stream.service && stream_up=1
 
 api_action="warm"
 caddy_action="warm"
 stream_action="warm"
+heartbeat="${RADIO_HEARTBEAT:-/home/ubuntu/rootrecord-radio/state/heartbeat}"
+heartbeat_age=-1
+if [[ -f "$heartbeat" ]]; then
+  now_s="$(date +%s)"
+  hb_s="$(stat -c %Y "$heartbeat" 2>/dev/null || echo 0)"
+  heartbeat_age="$((now_s - hb_s))"
+fi
 
-if [[ "$stream_count" -gt 1 ]]; then
-  sudo -n systemctl restart rr-radio-stream.service
-  stream_action="collapsed"
-elif [[ "$stream_up" -eq 0 || "$stream_count" -eq 0 ]]; then
+if [[ "$stream_up" -eq 0 ]]; then
   sudo -n systemctl start rr-radio-stream.service
   stream_action="started"
+  echo "event=watch_restart reason=inactive"
+elif [[ "$heartbeat_age" -gt 30 ]]; then
+  sudo -n systemctl restart rr-radio-stream.service
+  stream_action="heartbeat"
+  echo "event=watch_restart reason=heartbeat age=$heartbeat_age"
 fi
 
 if [[ "$api_count" -gt 1 ]]; then

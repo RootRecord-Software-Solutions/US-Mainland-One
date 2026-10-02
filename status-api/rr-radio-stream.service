@@ -11,10 +11,13 @@ Environment=HOST=127.0.0.1
 Environment=PORT=8092
 Environment=RADIO_DIR=/home/ubuntu/rootrecord-radio/audio
 Environment=RADIO_REPORTS_DIR=/home/ubuntu/rootrecord-radio/audio/reports
-Environment=RADIO_LIB=/home/ubuntu/US-Mainland-Server/status-api/radio
-ExecStart=/usr/bin/node /home/ubuntu/rootrecord-radio/stream.js
+Environment=RADIO_HEARTBEAT=/home/ubuntu/rootrecord-radio/state/heartbeat
+Environment=RADIO_DEPLOY_PENDING=/home/ubuntu/rootrecord-radio/deploy-pending
+ExecStart=/home/ubuntu/rootrecord-radio/radio-run.sh
 Restart=on-failure
 RestartSec=2
+KillMode=mixed
+TimeoutStopSec=5
 
 [Install]
 WantedBy=multi-user.target

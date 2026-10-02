@@ -85,7 +85,7 @@ function loadLibrary() {
   }
 }
 
-function catalog() {
+function catalog(when) {
   const lib = loadLibrary();
   const music = list(path.join(AUDIO, 'music'), (name) => MUSIC_NAME.test(name)).map((row) => {
     const meta = lib[row.name] || {};
@@ -95,7 +95,7 @@ function catalog() {
     const description = typeof meta.description === 'string' ? meta.description.trim() : '';
     return { name: row.name, bytes: row.bytes, mtime: row.mtime, title, description };
   });
-  const minutes = hawaiiMinutes(new Date());
+  const minutes = hawaiiMinutes(when || new Date());
   const reports = list(REPORTS, (name) => REPORT_NAME.test(name)).map((row) => ({
     id: row.name.slice(0, -'_current.ogg'.length),
     file: row.name,
