@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Network Activity</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#000011;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}#globe{width:100vw;height:100vh}
+.hud{position:fixed;top:18px;left:18px;min-width:252px;max-width:390px;padding:14px 16px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(0,0,12,.68);backdrop-filter:blur(12px);color:#e8e8ef;box-shadow:0 14px 50px rgba(0,0,0,.35);pointer-events:none}.title{font-size:12px;letter-spacing:1.6px;font-weight:700}.status{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:#bdbdc7}.dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e}.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:13px}.metric{display:flex;flex-direction:column;gap:2px}.metric span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#797985}.metric strong{font-size:15px;font-variant-numeric:tabular-nums}.info{margin-top:11px;padding-top:9px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:#858592;line-height:1.45}.label{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);color:#9a9aa5;font-size:11px;letter-spacing:1.4px;display:flex;align-items:center;gap:8px;pointer-events:none;user-select:none}.help{position:fixed;right:16px;bottom:16px;color:#666673;font-size:10px;pointer-events:none}.aws{color:#86efac}.hidden{display:none}
+.embed .hud,.embed .label,.embed .help{display:none}
+</style>
+</head>
+<body>
+<div id="globe"></div>
+<section class="hud" id="hud">
+<div class="title">LIVE NETWORK ACTIVITY</div>
+<div class="status"><div class="dot" id="dot"></div><span id="status">CONNECTING</span></div>
+<div class="grid">
+<div class="metric"><span>Active flows</span><strong id="flows">0</strong></div>
+<div class="metric"><span>Endpoints</span><strong id="endpoints">0</strong></div>
+<div class="metric"><span>Packets/sec</span><strong id="pps">0</strong></div>
+<div class="metric"><span>Bytes/sec</span><strong id="bps">0 B/s</strong></div>
+</div>
+<div class="info" id="origin">Origin: discovering…</div>
+<div class="info" id="aws">AWS: checking…</div>
+</section>
+<div class="label"><div class="dot"></div>REAL NETWORK OBSERVATIONS · AUTO-UPDATING</div>
+<div class="help">drag to rotate · scroll to zoom</div>
+<script src="https://unpkg.com/globe.gl"></script>
+<script>
+const params=new URLSearchParams(location.search);if(params.get('embed')==='1')document.documentElement.classList.add('embed');
+
+// Solid continuous green arcs (no dash gaps / breaks).
+const ARC_GREEN='#22c55e';
+const ARC_GREEN_BRIGHT='#4ade80';
+
+const globe=Globe()(document.getElementById('globe'))
+.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-night.jpg')
+.backgroundColor('#000011').showAtmosphere(true).atmosphereColor('#14532d').atmosphereAltitude(.16)
+.arcColor(d=>d.color||ARC_GREEN)
+.arcAltitude(d=>d.altitude!=null?d.altitude:.18)
+.arcStroke(d=>d.stroke||1.25)
+// Full solid path — gap 0 so the line is continuous end-to-end
+.arcDashLength(1)
+.arcDashGap(0)
+.arcDashAnimateTime(0)
+.arcLabel(d=>{let s=`${d.process||'network'} · ${d.protocol||''}`;if(d.endpoint)s+=` · ${d.endpoint}`;if(d.port)s+=`:${d.port}`;if(d.awsRegion)s+=`<br>AWS ${d.awsRegion} · ${d.awsCount}`;else if(d.city||d.country)s+=`<br>${d.city||''}${d.city&&d.country?', ':''}${d.country||''}`;if(d.org)s+=`<br>${d.org}`;return s})
+.pointLabel(d=>d.label||'')
+.pointColor(d=>d.type==='origin'?'#fff':d.type==='aws'?ARC_GREEN_BRIGHT:ARC_GREEN)
+.pointAltitude(d=>d.type==='origin'?.025:d.type==='aws'?.018:.012)
+.pointRadius(d=>d.type==='origin'?.55:d.type==='aws'?.42:.3)
+.pointsMerge(false);
+globe.controls().autoRotate=true;globe.controls().autoRotateSpeed=.35;globe.controls().enableZoom=true;
+
+const $=id=>document.getElementById(id); const fmt=n=>Number(n||0).toLocaleString();
+function bytes(n){n=Number(n||0);if(n<1024)return `${Math.round(n)} B/s`;if(n<1048576)return `${(n/1024).toFixed(1)} KB/s`;if(n<1073741824)return `${(n/1048576).toFixed(1)} MB/s`;return `${(n/1073741824).toFixed(1)} GB/s`}
+function update(d){const s=d.stats||{};$('flows').textContent=fmt(s.activeFlows);$('endpoints').textContent=fmt(s.endpoints);$('pps').textContent=Number(s.packetRate||0).toFixed(1);$('bps').textContent=bytes(s.bytesPerSec);$('origin').textContent=`Origin: ${d.origin?.label||'unknown'} · collector: ${s.collector||'ss'}`;const a=d.aws||{};$('aws').innerHTML=a.ok?`<span class="aws">AWS: ${a.region||'unknown'} · ${a.resourceNodes||0} resource groups · acct ${a.account||'?'}</span>`:`AWS: ${a.reason||'no AWS telemetry'}`;}
+let busy=false;async function poll(){if(busy)return;busy=true;try{const r=await fetch('/api/state',{cache:'no-store'});const d=await r.json();globe.arcsData(d.arcs||[]);globe.pointsData(d.points||[]);update(d);$('status').textContent='LIVE';$('dot').style.background='#22c55e';$('dot').style.boxShadow='0 0 10px #22c55e'}catch(e){$('status').textContent='OFFLINE';$('dot').style.background='#ef4444';$('dot').style.boxShadow='0 0 10px #ef4444'}finally{busy=false}}
+poll();setInterval(poll,1000);
+</script>
+</body>
+</html>

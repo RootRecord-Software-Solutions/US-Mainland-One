@@ -1,0 +1,14 @@
+[Unit]
+Description=Root Record Network Globe daily SQLite history
+After=network-globe-feed-server.service
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/network-globe/network-globe
+ExecStart=/usr/bin/python3 /home/ubuntu/network-globe/network-globe/connection-history.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

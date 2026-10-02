@@ -1,0 +1,199 @@
+{
+  "_comment": "Synthetic preview data for overlay/preview-server.js only. Not real traffic; IPs are RFC 5737 documentation addresses. 'updated' is replaced with the current time when served.",
+  "origin": {
+    "label": "Sample origin (Ohio)",
+    "lat": 39.96,
+    "lng": -83.0
+  },
+  "stats": {
+    "activeFlows": 14,
+    "hawaiiActiveFlows": 6,
+    "endpoints": 11,
+    "packetRate": 42.5,
+    "bytesPerSec": 183000,
+    "collector": "ss",
+    "updated": 0
+  },
+  "aws": {
+    "ok": true,
+    "region": "us-east-2",
+    "resourceNodes": 7,
+    "account": "000000000000"
+  },
+  "points": [
+    {
+      "lat": 39.96,
+      "lng": -83.0,
+      "type": "origin",
+      "label": "Sample origin"
+    },
+    {
+      "lat": 21.31,
+      "lng": -157.86,
+      "type": "remote",
+      "label": "Honolulu (sample)"
+    },
+    {
+      "lat": 40.0,
+      "lng": -83.0,
+      "type": "aws",
+      "label": "AWS us-east-2 (sample)"
+    },
+    {
+      "lat": 37.77,
+      "lng": -122.42,
+      "type": "remote",
+      "label": "San Francisco"
+    },
+    {
+      "lat": 51.51,
+      "lng": -0.13,
+      "type": "remote",
+      "label": "London"
+    },
+    {
+      "lat": 35.68,
+      "lng": 139.69,
+      "type": "remote",
+      "label": "Tokyo"
+    },
+    {
+      "lat": -33.87,
+      "lng": 151.21,
+      "type": "remote",
+      "label": "Sydney"
+    },
+    {
+      "lat": 1.35,
+      "lng": 103.82,
+      "type": "remote",
+      "label": "Singapore"
+    }
+  ],
+  "arcs": [
+    {
+      "startLat": 39.96,
+      "startLng": -83.0,
+      "endLat": 21.31,
+      "endLng": -157.86,
+      "process": "Hawaii ↔ Mainland",
+      "protocol": "persistent",
+      "color": "#fde047",
+      "altitude": 0.18,
+      "stroke": 1.35,
+      "port": null,
+      "ip": "198.51.100.23",
+      "endpoint": "Hawaii",
+      "country": "United States",
+      "asn": 64500,
+      "org": "Sample Island ISP",
+      "sourceNode": "HawaiiRoot",
+      "sourceRegion": "local-hawaii"
+    },
+    {
+      "startLat": 21.31,
+      "startLng": -157.86,
+      "endLat": 37.77,
+      "endLng": -122.42,
+      "process": "sample-proc",
+      "protocol": "tcp",
+      "color": "#22c55e",
+      "altitude": 0.18,
+      "stroke": 1.2,
+      "endpoint": "203.0.113.10",
+      "ip": "203.0.113.10",
+      "port": 443,
+      "city": "San Francisco",
+      "country": "US",
+      "org": "Example CDN",
+      "asn": 64501,
+      "bytes": 5242880,
+      "packets": 4100,
+      "bytesPerSec": 87381
+    },
+    {
+      "startLat": 21.31,
+      "startLng": -157.86,
+      "endLat": 35.68,
+      "endLng": 139.69,
+      "process": "sample-proc",
+      "protocol": "udp",
+      "color": "#22c55e",
+      "altitude": 0.18,
+      "stroke": 1.2,
+      "endpoint": "203.0.113.44",
+      "ip": "203.0.113.44",
+      "port": 3478,
+      "city": "Tokyo",
+      "country": "JP",
+      "org": "Example Voice",
+      "asn": 64502,
+      "bytes": 901120,
+      "packets": 1400,
+      "bytesPerSec": 15018
+    },
+    {
+      "startLat": 39.96,
+      "startLng": -83.0,
+      "endLat": 51.51,
+      "endLng": -0.13,
+      "process": "sample-proc",
+      "protocol": "tcp",
+      "color": "#22c55e",
+      "altitude": 0.18,
+      "stroke": 1.2,
+      "endpoint": "198.51.100.80",
+      "ip": "198.51.100.80",
+      "port": 443,
+      "city": "London",
+      "country": "GB",
+      "org": "Example Cloud",
+      "asn": 64503,
+      "bytes": 240000,
+      "packets": 300,
+      "bytesPerSec": 4000
+    },
+    {
+      "startLat": 21.31,
+      "startLng": -157.86,
+      "endLat": -33.87,
+      "endLng": 151.21,
+      "process": "sample-proc",
+      "protocol": "tcp",
+      "color": "#22c55e",
+      "altitude": 0.18,
+      "stroke": 1.2,
+      "endpoint": "203.0.113.99",
+      "ip": "203.0.113.99",
+      "port": 22,
+      "city": "Sydney",
+      "country": "AU",
+      "org": "Example Hosting",
+      "asn": 64504,
+      "bytes": 64000,
+      "packets": 500,
+      "bytesPerSec": 1066
+    },
+    {
+      "startLat": 39.96,
+      "startLng": -83.0,
+      "endLat": 1.35,
+      "endLng": 103.82,
+      "process": "sample-proc",
+      "protocol": "tcp",
+      "color": "#22c55e",
+      "altitude": 0.18,
+      "stroke": 1.2,
+      "endpoint": "192.0.2.7",
+      "ip": "192.0.2.7",
+      "port": 443,
+      "city": "Singapore",
+      "country": "SG",
+      "org": "Example Cloud",
+      "asn": 64503,
+      "bytes": 120000,
+      "packets": 160,
+      "bytesPerSec": 2000
+    }
+  ]
+}

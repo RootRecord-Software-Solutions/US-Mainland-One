@@ -1,0 +1,23 @@
+api.rootrecord.cloud {
+	@station path /radio/live.mp3 /radio/now.json
+	handle @station {
+		reverse_proxy 127.0.0.1:8092 {
+			flush_interval -1
+		}
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8091
+	}
+}
+
+radio.rootrecord.cloud {
+	@station path /radio/live.mp3 /radio/now.json
+	handle @station {
+		reverse_proxy 127.0.0.1:8092 {
+			flush_interval -1
+		}
+	}
+	handle {
+		respond "radio" 404
+	}
+}

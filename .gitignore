@@ -1,0 +1,85 @@
+# ============================================================
+# RootRecord aws-sync repository
+# Secrets, credentials, runtime mirrors, caches, and generated data
+# ============================================================
+
+# ---- Local secrets / credentials ----
+config/rclone.conf
+mirror/.cloudflared/*.json
+mirror/.cloudflared/cert.pem
+mirror/.ssh/
+mirror/rootrecord/etc/
+mirror/rootrecord/venv/
+mirror/rootrecord/work/
+mirror/rootrecord/bin/
+
+# ---- Shell / user environment copied by rclone ----
+mirror/.bash_history
+mirror/.bashrc
+mirror/.bash_logout
+mirror/.profile
+
+# ---- AWS snapshot/archive ----
+mirror/aws side.zip
+
+# ---- Runtime mirror data ----
+mirror/rootrecord/logs/
+mirror/rootrecord/out/
+mirror/rootrecord/chronological/
+mirror/rootrecord/radio/
+
+# ---- Caches / package-manager state ----
+mirror/.cache/
+mirror/.npm/
+
+# ---- Local operational logs ----
+logs/
+*.log
+
+# ---- Mount/runtime scratch ----
+mnt/
+
+# ---- Network Globe generated runtime state ----
+mirror/network-globe/data/*.json
+mirror/network-globe/data/*.ndjson
+mirror/network-globe/globe.log
+
+# ---- OS/editor noise ----
+.DS_Store
+Thumbs.db
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# ---- Node dependencies / build output ----
+node_modules/
+dist/
+build/
+.next/
+.vercel/
+
+# ---- Radio library (pushed from Hawaii over SSH; not git) ----
+communications/rootrecord-radio/audio/music/*
+communications/rootrecord-radio/audio/reports/*
+communications/rootrecord-radio/audio/retired/
+!communications/rootrecord-radio/audio/music/.gitkeep
+!communications/rootrecord-radio/audio/reports/.gitkeep
+
+# ---- Environment files ----
+.env
+.env.*
+!.env.example
+
+# ---- AWS CLI local session/cache ----
+mirror/.aws/cli/cache/
+
+# ---- Nested Network Globe runtime artifacts ----
+mirror/network-globe/network-globe/data/*.json
+mirror/network-globe/network-globe/data/*.ndjson
+mirror/network-globe/network-globe/*.log
+
+# ---- Python bytecode (desk import 2026-09-29; scripts/__pycache__/jobs.cpython-314.pyc is already tracked — untrack only with sign-off) ----
+__pycache__/
+*.py[cod]

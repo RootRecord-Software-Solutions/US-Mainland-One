@@ -1,0 +1,97 @@
+/* ==========================================================================
+   overlay.css — glass cards over the Network Globe landing (2026-09-29)
+   Self-contained: remove the single <script src="/overlay/overlay.js"> line in
+   index.html to revert. The root is pointer-events:none so the globe stays
+   draggable/zoomable everywhere outside the cards.
+   ========================================================================== */
+#rr-ov{position:fixed;inset:0;z-index:20;pointer-events:none;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e8e8ef;--ov-gap:12px;--ov-edge:18px;--ov-rail:0px}
+#rr-ov *{box-sizing:border-box}
+#rr-ov .ov-glass{background:rgba(8,10,28,.46);border:1px solid rgba(255,255,255,.14);border-radius:16px;backdrop-filter:blur(14px) saturate(140%);-webkit-backdrop-filter:blur(14px) saturate(140%);box-shadow:0 14px 44px rgba(0,0,0,.38)}
+/* right column (desktop) */
+#rr-ov .ov-col{position:absolute;top:var(--ov-edge);right:var(--ov-edge);bottom:var(--ov-edge);width:300px;display:flex;flex-direction:column;gap:var(--ov-gap);justify-content:flex-start;pointer-events:none;min-height:0}
+#rr-ov .ov-card{pointer-events:auto;position:relative;padding:14px 16px 14px;min-height:0;overflow:hidden;flex:0 1 auto;transition:opacity .18s ease,transform .18s ease}
+#rr-ov .ov-card[hidden]{display:none}
+#rr-ov .ov-card h2{margin:0 26px 6px 0;font-size:12px;letter-spacing:1.5px;font-weight:700;text-transform:uppercase}
+#rr-ov .ov-card p{margin:0 0 10px;font-size:12px;line-height:1.45;color:#b9b9c6}
+#rr-ov .ov-x{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:#9a9aa8;font-size:16px;line-height:26px;cursor:pointer}
+#rr-ov .ov-x:hover,#rr-ov .ov-x:focus-visible{background:rgba(255,255,255,.1);color:#fff;outline:none}
+#rr-ov .ov-badge{display:inline-block;margin:0 0 8px;padding:2px 8px;border-radius:999px;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:rgba(250,204,21,.16);color:#fde68a;border:1px solid rgba(250,204,21,.35)}
+#rr-ov form{display:flex;gap:8px;flex-wrap:wrap;margin:0}
+#rr-ov input[type=email]{flex:1 1 150px;min-width:0;height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.35);color:#fff;font-size:13px}
+#rr-ov input[type=email]:focus{outline:2px solid rgba(125,211,252,.55);outline-offset:1px}
+#rr-ov .ov-btn{height:34px;padding:0 14px;border-radius:10px;border:1px solid rgba(125,211,252,.45);background:rgba(56,189,248,.18);color:#e0f2fe;font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+#rr-ov .ov-btn:hover{background:rgba(56,189,248,.3)}
+#rr-ov .ov-btn[disabled]{opacity:.55;cursor:not-allowed}
+#rr-ov .ov-note{margin-top:8px;font-size:10.5px;color:#8b8b99}
+/* status rows */
+#rr-ov .ov-rows{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:12px;align-items:center}
+#rr-ov .ov-rows dt{display:flex;align-items:center;gap:7px;color:#c9c9d4;margin:0}
+#rr-ov .ov-rows dd{margin:0;text-align:right;color:#9d9dab;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rr-ov .ov-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;background:#6b7280}
+#rr-ov .ov-dot.ok{background:#22c55e;box-shadow:0 0 8px #22c55e}
+#rr-ov .ov-dot.warn{background:#f59e0b;box-shadow:0 0 8px #f59e0b}
+#rr-ov .ov-dot.bad{background:#ef4444;box-shadow:0 0 8px #ef4444}
+#rr-ov .ov-updated{margin-top:8px;font-size:10px;color:#7c7c8a}
+/* restore dock */
+#rr-ov .ov-dock{position:absolute;right:var(--ov-edge);bottom:var(--ov-edge);display:flex;gap:6px;pointer-events:none}
+#rr-ov .ov-dock button{pointer-events:auto;height:30px;padding:0 11px;border-radius:999px;font-size:11px;color:#dbeafe;cursor:pointer;border:1px solid rgba(255,255,255,.16);background:rgba(8,10,28,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+#rr-ov .ov-dock button:hover{background:rgba(56,189,248,.25)}
+#rr-ov.has-dock .ov-col{bottom:calc(var(--ov-edge) + 40px)}
+/* v2: globe tools (spin) + click-info card */
+#rr-ov .ov-tools,#rr-ov .ov-pills{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#rr-ov .ov-dock button.ov-tool{border-color:rgba(125,211,252,.35);color:#e0f2fe}
+#rr-ov .ov-dock button.ov-tool[aria-pressed="true"]{background:rgba(250,204,21,.16);border-color:rgba(250,204,21,.4);color:#fde68a}
+#rr-ov .ov-info{position:absolute;left:var(--ov-edge);bottom:44px;width:290px;max-height:calc(100vh - 220px);z-index:2}
+html.rr-ov-rail #rr-ov .ov-info{left:calc(var(--rr-rail-w,52px) + 22px)}
+#rr-ov .ov-info .ov-sub{font-size:12px;color:#e8e8ef;margin:-2px 0 9px;padding-right:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rr-ov .ov-kv dt{color:#8d8d9b;gap:0}
+#rr-ov .ov-kv dd{color:#e2e8f0;max-width:190px}
+/* left rail */
+#rr-ov .ov-rail{position:absolute;top:var(--ov-edge);left:var(--ov-edge);bottom:var(--ov-edge);width:52px;padding:8px 6px;display:flex;flex-direction:column;gap:6px;pointer-events:auto;transition:width .18s ease}
+#rr-ov .ov-rail.open{width:184px}
+#rr-ov .ov-rail button,#rr-ov .ov-rail a{display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px;border:0;background:transparent;color:#d4d4de;font-size:13px;text-decoration:none;cursor:pointer;white-space:nowrap;overflow:hidden}
+#rr-ov .ov-rail button:hover,#rr-ov .ov-rail a:hover{background:rgba(255,255,255,.09)}
+#rr-ov .ov-rail .ov-ico{flex:0 0 20px;text-align:center;font-size:16px}
+#rr-ov .ov-rail .ov-lbl{opacity:0;transition:opacity .12s}
+#rr-ov .ov-rail.open .ov-lbl{opacity:1}
+#rr-ov .ov-rail .ov-spacer{flex:1}
+/* legacy HUD / labels from index.html */
+html.rr-ov-on.rr-ov-rail .hud{left:calc(var(--rr-rail-w,52px) + 30px)}
+html.rr-ov-on .help{right:auto;left:18px}
+html.rr-ov-on.rr-ov-rail .help{left:calc(var(--rr-rail-w,52px) + 30px)}
+html.rr-ov-on.rr-ov-hud-hide .hud{display:none}
+html.rr-ov-on.rr-ov-hud-compact .hud{min-width:0;max-width:330px}
+/* ---------- mobile: one viewport, no scroll ---------- */
+@media (max-width:640px){
+  #rr-ov{--ov-edge:10px;--ov-gap:8px}
+  #rr-ov .ov-col{top:auto;left:var(--ov-edge);right:var(--ov-edge);width:auto;max-height:58vh;justify-content:flex-end}
+  #rr-ov .ov-card{padding:10px 12px}
+  #rr-ov .ov-card h2{font-size:11px;margin-bottom:4px}
+  #rr-ov .ov-card p{font-size:11px;margin-bottom:7px}
+  #rr-ov .ov-note{margin-top:5px}
+  #rr-ov .ov-rows{gap:4px 8px;font-size:11px}
+  #rr-ov .ov-updated{margin-top:5px}
+  #rr-ov .ov-dock{bottom:var(--ov-edge);right:var(--ov-edge);left:var(--ov-edge);justify-content:flex-end;flex-wrap:wrap}
+  #rr-ov.has-dock .ov-col{bottom:calc(var(--ov-edge) + 38px);max-height:calc(58vh - 38px)}
+  #rr-ov .ov-info,html.rr-ov-rail #rr-ov .ov-info{left:var(--ov-edge);right:var(--ov-edge);width:auto;bottom:calc(var(--ov-edge) + 38px);max-height:52vh;z-index:3}
+  #rr-ov .ov-kv dd{max-width:none}
+  #rr-ov.has-info .ov-col{display:none} /* phone: the info card takes the cards' place until closed */
+  #rr-ov .ov-rail{bottom:auto;height:auto;width:44px;padding:5px}
+  #rr-ov .ov-rail.open{width:170px}
+  #rr-ov .ov-rail .ov-spacer{display:none}
+  #rr-ov .ov-rail button,#rr-ov .ov-rail a{height:34px;padding:0 7px}
+  html.rr-ov-on .hud{top:10px;left:10px;right:auto;min-width:0;max-width:calc(100vw - 20px);padding:9px 11px;border-radius:12px}
+  html.rr-ov-on.rr-ov-rail .hud{left:62px;max-width:calc(100vw - 72px)}
+  html.rr-ov-on .hud .grid{grid-template-columns:repeat(4,auto);gap:4px 10px;margin-top:7px}
+  html.rr-ov-on .hud .metric strong{font-size:12px}
+  html.rr-ov-on .hud .info{display:none}
+  html.rr-ov-on .label,html.rr-ov-on .help{display:none}
+}
+@media (max-width:640px) and (max-height:700px){
+  #rr-ov .ov-card p{display:none}
+}
+@media (max-height:560px) and (min-width:641px){
+  #rr-ov .ov-card p{display:none}
+  #rr-ov .ov-card{padding:10px 14px}
+}
+@media (prefers-reduced-motion:reduce){#rr-ov .ov-card,#rr-ov .ov-rail{transition:none}}

@@ -1,0 +1,8 @@
+[Unit]
+Description=Empty the radio play log (no archive)
+
+[Service]
+Type=oneshot
+User=ubuntu
+Environment=RADIO_PLAY_LOG=/home/ubuntu/rootrecord-radio/plays.log
+ExecStart=/home/ubuntu/US-Mainland-Server/status-api/radio-plays-purge.sh

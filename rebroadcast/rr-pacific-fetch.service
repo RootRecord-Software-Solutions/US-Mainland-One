@@ -1,0 +1,8 @@
+[Unit]
+Description=Pull the Pacific rebroadcast snapshot
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/home/ubuntu/rebroadcast/fetch-pacific.sh

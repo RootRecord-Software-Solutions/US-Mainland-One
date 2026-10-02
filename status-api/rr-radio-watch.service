@@ -1,0 +1,7 @@
+[Unit]
+Description=Keep one radio API and one Caddy, and warm the catalog
+
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/home/ubuntu/rootrecord-radio/radio-watch.sh

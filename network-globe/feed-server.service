@@ -1,0 +1,14 @@
+[Unit]
+Description=Root Record Network Globe NDJSON feed
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/network-globe/network-globe
+ExecStart=/usr/bin/node /home/ubuntu/network-globe/network-globe/feed-server.js
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
