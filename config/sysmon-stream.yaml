@@ -1,0 +1,9 @@
+# SSH stream for Mainland sysmon → Pacific Database. Keep disabled until receiver + key exist.
+enabled: false
+ssh_host: pacific-db
+ssh_user: rootrecord
+ssh_port: 22
+ssh_identity_file: /home/ubuntu/.ssh/ml1-db-stream
+receiver_command: python3 /home/rootrecord/RootRecord-Ecosystem/1\ -\ Servers/1\ -\ RootRecord-Pacific-Solar-Server/System/scripts/rr_db_stream_receive.py
+timeout_sec: 90
+delete_after_ack: true

@@ -20,3 +20,9 @@ rootrecord-radio/radio-run.sh
 rootrecord-radio/radio-station-watch.sh
 rootrecord-radio/radio-plays-purge.sh
 rootrecord-radio/radio-watch.sh
+
+# Mainland sysmon ephemeral
+var/sysmon/handoff/
+var/sysmon/telegram-outbox/
+var/sysmon/state/
+var/sysmon/**/*.zip

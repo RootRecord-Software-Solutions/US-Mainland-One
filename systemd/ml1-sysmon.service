@@ -1,0 +1,13 @@
+[Unit]
+Description=RootRecord us-mainland-one system monitor → Pacific (SSH, Telegram fallback)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/ubuntu/US-Mainland-Server
+EnvironmentFile=-/etc/rootrecord/sysmon.env
+EnvironmentFile=-/home/ubuntu/.env
+Environment=RR_SYSMON_SOURCE_NODE=us-mainland-one
+ExecStart=/home/ubuntu/US-Mainland-Server/system-monitor/run-cycle.sh
+User=ubuntu

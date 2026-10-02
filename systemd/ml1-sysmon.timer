@@ -1,0 +1,12 @@
+[Unit]
+Description=Run us-mainland-one system monitor every 5 minutes (staged; not installed)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+Persistent=true
+Unit=ml1-sysmon.service
+
+[Install]
+WantedBy=timers.target
