@@ -135,7 +135,6 @@ function closeProc(proc) {
 function openDecode(file) {
   return spawn('ffmpeg', [
     '-hide_banner', '-loglevel', 'error',
-    '-fflags', 'nobuffer',
     '-i', file,
     '-f', 's16le', '-ar', String(RATE), '-ac', '2',
     '-flush_packets', '1',
