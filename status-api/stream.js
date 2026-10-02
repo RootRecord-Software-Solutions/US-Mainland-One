@@ -240,13 +240,19 @@ function startEncoder() {
   encoder.stdout.on('data', (chunk) => {
     preroll.push(chunk);
     prerollBytes += chunk.length;
-    while (prerollBytes > 32768 && preroll.length > 1) prerollBytes -= preroll.shift().length;
+    while (prerollBytes > 131072 && preroll.length > 1) prerollBytes -= preroll.shift().length;
     for (const res of clients) {
       if (res.writableEnded || res.destroyed) {
         clients.delete(res);
         continue;
       }
-      if (res.writableLength > 1024 * 1024) continue;
+      // A stuck socket used to skip frames. That punched holes in the MP3
+      // and the browser heard a cut. Close that one listener instead.
+      if (res.writableLength > 262144) {
+        clients.delete(res);
+        res.destroy();
+        continue;
+      }
       try { res.write(chunk); } catch (err) { clients.delete(res); }
     }
   });
