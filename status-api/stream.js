@@ -40,7 +40,7 @@ const radio = require(process.env.RADIO_LIB || path.join(__dirname, 'radio'));
 const RATE = 44100;
 const FRAME = RATE * 2 * 2 / 10;
 const SCAN_MS = Number(process.env.RADIO_SCAN_MS || 5000);
-const DUCK = 0.25;
+const DUCK = 0.1;
 const DEPLOY_EXIT = 75;
 
 const TITLES = {
