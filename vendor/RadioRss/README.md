@@ -2,7 +2,7 @@
 
 External RSS and Atom for RootRecord Radio. Canonical home is **this ML1 tree** (`US-Mainland-One/vendor/RadioRss/`). Not on ML2 or Pacific.
 
-This layer writes a queue the station can take from, and `--speak` can hand one finished brief to the existing voice renderer and `radio_push.py`. The station library is Opus. The public mix is `https://radio.rootrecord.cloud/radio/live.mp3`.
+This layer writes a queue the station can take from, and `--speak` can hand one finished brief to the existing voice renderer and `radio_push.py`. The station library is Opus. Public air is YouTube only; `radio.rootrecord.cloud` / `live.mp3` are off.
 
 | | |
 | --- | --- |

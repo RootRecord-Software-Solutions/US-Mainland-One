@@ -1,0 +1,17 @@
+[Unit]
+Description=ML1 EXACT_TIME poller (jobs.py — same layout as Pacific)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/US-Mainland-Server
+Environment=TZ=Pacific/Honolulu
+Environment=RR_ML1_ROOT=/home/ubuntu/US-Mainland-Server
+ExecStart=/usr/bin/python3 /home/ubuntu/US-Mainland-Server/scripts/ml1-poller.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
