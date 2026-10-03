@@ -841,11 +841,22 @@ function nowBody() {
   };
 }
 
+function isLoopback(req) {
+  const raw = (req.socket && req.socket.remoteAddress) || '';
+  return raw === '127.0.0.1' || raw === '::1' || raw === '::ffff:127.0.0.1';
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   if (req.method !== 'GET' && req.method !== 'HEAD') {
     res.writeHead(405, { 'Content-Type': 'text/plain; charset=utf-8', Allow: 'GET, HEAD' });
     res.end('Method not allowed\n');
+    return;
+  }
+  // Public radio is off (YouTube only). Mixer is for localhost YouTube ffmpeg.
+  if (!isLoopback(req)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('Local mixer only\n');
     return;
   }
   if (url.pathname === '/health') {
